@@ -5,7 +5,7 @@ from tensorflow.keras import optimizers
 import tensorflow.keras.backend as K
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve
+from sklearn.metrics import roc_curve, roc_auc_score
 from tqdm import tqdm
 from typing import *
 
@@ -173,6 +173,30 @@ class SiameseNet():
         plt.hist(negative_distances, bins=100, label='Negative', alpha=0.7)
         plt.legend()
         plt.show()
+
+    def plot_roc(self, generator: PairDataGenerator, distance: str = 'euclidean') -> float:
+        positive_distances, negative_distances = self.get_test_distances(generator, distance)
+        positive_labels = np.ones(shape=positive_distances.shape)
+        negative_labels = np.zeros(shape=negative_distances.shape)
+        distances = np.append(positive_distances, negative_distances)
+        labels = np.append(positive_labels, negative_labels)
+        lr_fpr, lr_tpr, _ = roc_curve(labels, distances)
+        plt.plot([0,1], [0,1], linestyle='--', label='No Skill', color='gray')
+        plt.plot(lr_fpr, lr_tpr, marker='.', label='Predictions')
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.show()
+        auc = roc_auc_score(labels, distances)
+        print(f'AUC: {auc}')
+        return auc
+
+    def get_roc_auc(self, generator: PairDataGenerator, distance: str = 'euclidean') -> float:
+        positive_distances, negative_distances = self.get_test_distances(generator, distance)
+        positive_labels = np.ones(shape=positive_distances.shape)
+        negative_labels = np.zeros(shape=negative_distances.shape)
+        distances = np.append(positive_distances, negative_distances)
+        labels = np.append(positive_labels, negative_labels)
+        return roc_auc_score(labels, distances)
 
 class TripletNet():
     def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 100.0, optimizer: optimizers.Optimizer | str = 'adamax', distance_function: Callable = euclidean_distance):
