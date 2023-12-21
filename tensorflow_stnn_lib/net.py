@@ -154,13 +154,13 @@ class SiameseNet():
         negative_distances = np.array([])
         for i in tqdm(range(len(generator))):  # For each batch index
             # Get the current validation batch
-            [left, right], label = generator[i]
+            [left, right], labels = generator[i]
             left_emb = self.get_embeddings(left)
             right_emb = self.get_embeddings(right)
-            positive_left_emb = left_emb[label.astype(bool)]
-            positive_right_emb = right_emb[label.astype(bool)]
-            negative_left_emb = left_emb[(1-label).astype(bool)]
-            negative_right_emb = right_emb[(1-label).astype(bool)]
+            positive_left_emb = left_emb[np.squeeze(labels.astype(bool))]
+            positive_right_emb = right_emb[np.squeeze(labels.astype(bool))]
+            negative_left_emb = left_emb[np.squeeze((1-labels).astype(bool))]
+            negative_right_emb = right_emb[np.squeeze((1-labels).astype(bool))]
             positive_distances = np.append(positive_distances, distance_fn(positive_left_emb, positive_right_emb))
             negative_distances = np.append(negative_distances, distance_fn(negative_left_emb, negative_right_emb))
         
