@@ -67,7 +67,7 @@ class PairDataGenerator():
             batch_h5 = h5.File(batch_file_path, 'a')
             batch_h5.create_dataset('left', data=left)
             batch_h5.create_dataset('right', data=right)
-            batch_h5.create_dataset('label', data=label)
+            batch_h5.create_dataset('labels', data=labels)
             batch_h5.close()
         
         batch_h5 = h5.File(batch_file_path, 'r')
@@ -77,8 +77,8 @@ class PairDataGenerator():
         batch_h5 = self.__batch_files[index]
         left = batch_h5['left']
         right = batch_h5['right']
-        label = batch_h5['label']
-        return [left, right], label
+        labels = batch_h5['labels']
+        return [left, right], labels
     
 class TripletDataGenerator():
     def __init__(self, batch_size: int, triplets_df: pd.DataFrame, loader_fn: Callable, name: str = None):
