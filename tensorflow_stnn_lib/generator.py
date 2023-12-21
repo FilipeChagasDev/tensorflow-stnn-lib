@@ -1,11 +1,12 @@
 import pandas as pd
+import numpy as np
 from tqdm import tqdm
 import numpy as np
 import h5py as h5
 import os
 from typing import *
 
-class TripletSNNDataGenerator():
+class TripletDataGenerator():
     def __init__(self, batch_size: int, triplets_df: pd.DataFrame, loader_fn: Callable, name: str = None):
         assert isinstance(batch_size, int)
         assert isinstance(triplets_df, pd.DataFrame)
@@ -48,17 +49,17 @@ class TripletSNNDataGenerator():
 
                 #append data to collections of anchors, positives and negatives
                 if anchors is None:
-                    anchors = anchor_array
+                    anchors = np.expand_dims(anchor_array, axis=0)
                 else:
                     anchors = np.append(anchors, anchor_array, axis=0)
 
                 if positives is None:
-                    positives = pos_array
+                    positives = np.expand_dims(pos_array, axis=0)
                 else:
                     positives = np.append(positives, pos_array, axis=0)
 
                 if negatives is None:
-                    negatives = neg_array
+                    negatives = np.expand_dims(neg_array, axis=0)
                 else:
                     negatives = np.append(negatives, neg_array, axis=0)
          

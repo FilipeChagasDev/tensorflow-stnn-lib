@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 from tqdm import tqdm
 from typing import *
 
-from keras_snn_lib.distance import euclidean_distance
-from keras_snn_lib.loss import triplet_loss
-from keras_snn_lib.generator import TripletSNNDataGenerator
+from tensorflow_stnn_lib.distance import euclidean_distance
+from tensorflow_stnn_lib.loss import triplet_loss
+from tensorflow_stnn_lib.generator import TripletDataGenerator
 
 class TrainingBreaker():
     def __init__(self, avg_window_size: int = 5, limit: float = -0.001) -> None:
-        """This class has a method that signals when the training of a Siamese neural network should be interrupted. 
+        """This class has a method that signals when the training of an neural network should be interrupted. 
         The interruption of training is authorized when the moving average of the numerical derivative of the validation 
         loss reaches a maximum limit close to 0.
 
@@ -48,7 +48,7 @@ class TrainingBreaker():
                 return True
         return False
 
-class TripletSNN():
+class TripletNet():
     def __init__(self, input_shape: tuple, encoder: keras.Model, optimizer: optimizers.Optimizer | str = 'adamax', distance_function: Callable = euclidean_distance):
         self.__input_shape = input_shape
         self.__encoder = encoder
@@ -67,19 +67,16 @@ class TripletSNN():
         encoder_neg = self.__encoder(input_neg)
 
         # Join encoders to a distance layer
-        pos_dist = layers.Lambda(self.__distance_function, name='PositiveDistance')(
-            [encoder_anchor, encoder_pos])
-        neg_dist = layers.Lambda(self.__distance_function, name='NegativeDistance')(
-            [encoder_anchor, encoder_neg])
+        pos_dist = layers.Lambda(self.__distance_function, name='PositiveDistance')([encoder_anchor, encoder_pos])
+        neg_dist = layers.Lambda(self.__distance_function, name='NegativeDistance')([encoder_anchor, encoder_neg])
 
         out = K.concatenate([pos_dist, neg_dist], axis=0)
 
         # Turn tensors to a keras compiled model.
-        self.keras_model = keras.Model(
-            inputs=[input_anchor, input_pos, input_neg], outputs=out)
+        self.keras_model = keras.Model(inputs=[input_anchor, input_pos, input_neg], outputs=out)
         self.keras_model.compile(loss=triplet_loss, optimizer=self.__optimizer)
 
-    def fit(self, training_generator: TripletSNNDataGenerator, validation_generator: TripletSNNDataGenerator, epochs: int, start_epoch: int = 1, epoch_end_callback : Callable = None, training_breaker: TrainingBreaker = None) -> Tuple[List[float], List[float]]:
+    def fit(self, training_generator: TripletDataGenerator, validation_generator: TripletDataGenerator, epochs: int, start_epoch: int = 1, epoch_end_callback : Callable = None, training_breaker: TrainingBreaker = None) -> Tuple[List[float], List[float]]:
         assert epochs >= 1
         assert start_epoch >= 1
         assert epochs >= start_epoch
