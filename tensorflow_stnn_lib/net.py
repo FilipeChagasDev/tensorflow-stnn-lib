@@ -5,6 +5,7 @@ from tensorflow.keras import optimizers
 import tensorflow.keras.backend as K
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
+from sklearn.metrics import roc_curve
 from tqdm import tqdm
 from typing import *
 
@@ -144,7 +145,7 @@ class SiameseNet():
     def get_embeddings(self, x: np.ndarray | tf.Tensor):
         return self.__encoder.predict(x, verbose=0)
     
-    def plot_distance_histogram(self, generator: PairDataGenerator, distance: str = 'euclidean'):
+    def get_test_distances(self, generator: PairDataGenerator, distance: str = 'euclidean'):
         distance_fn = {
             'euclidean': lambda a, b: np.linalg.norm(a-b, axis=1),
             'cosine': lambda a, b: 1 - np.sum(a*b, axis=1)/(np.linalg.norm(a, axis=1)*np.linalg.norm(b, axis=1))
@@ -164,12 +165,14 @@ class SiameseNet():
             negative_right_emb = right_emb[np.logical_not(labels)]
             positive_distances = np.append(positive_distances, distance_fn(positive_left_emb, positive_right_emb))
             negative_distances = np.append(negative_distances, distance_fn(negative_left_emb, negative_right_emb))
-        
+        return positive_distances, negative_distances
+
+    def plot_histogram(self, generator: PairDataGenerator, distance: str = 'euclidean'):
+        positive_distances, negative_distances = self.get_test_distances(generator, distance)
         plt.hist(positive_distances, bins=100, label='Positive')
         plt.hist(negative_distances, bins=100, label='Negative', alpha=0.7)
         plt.legend()
         plt.show()
-
 
 class TripletNet():
     def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 100.0, optimizer: optimizers.Optimizer | str = 'adamax', distance_function: Callable = euclidean_distance):
