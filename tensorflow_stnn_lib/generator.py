@@ -6,13 +6,13 @@ import os
 from typing import *
 
 class PairDataGenerator():
-    def __init__(self, batch_size: int, pair_df: pd.DataFrame, loader_fn: Callable, name: str = None):
+    def __init__(self, batch_size: int, pairs_df: pd.DataFrame, loader_fn: Callable, name: str = None):
         assert isinstance(batch_size, int)
-        assert isinstance(pair_df, pd.DataFrame)
+        assert isinstance(pairs_df, pd.DataFrame)
         assert isinstance(loader_fn, Callable)
         assert isinstance(name, (str, type(None)))
         self.__batch_size = batch_size
-        self.__pair_df = pair_df
+        self.__pair_df = pairs_df
         self.__loader_fn = loader_fn
         self.__name = name if name is not None else f'gen{id(self)}'
         self.__n_batches = (self.__pair_df.shape[0])//self.__batch_size
@@ -35,7 +35,7 @@ class PairDataGenerator():
         #output arrays
         left = None
         right = None
-        label = None
+        labels = None
         
         batch_file_path = os.path.join(self.__name, f'{self.__name}_{index}.h5')
         if not os.path.exists(batch_file_path):
@@ -57,9 +57,9 @@ class PairDataGenerator():
                     right = np.append(right, right_array, axis=0)
                 
                 if label is None:
-                    label = np.array([[label]])
+                    labels = np.array([[label]])
                 else:
-                    label = np.append(label, np.array([[label]]), axis=0)
+                    labels = np.append(labels, np.array([[label]]), axis=0)
 
             if not os.path.exists(self.__name):
                 os.mkdir(self.__name)
