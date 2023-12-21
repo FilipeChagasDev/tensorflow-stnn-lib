@@ -56,7 +56,7 @@ class PairDataGenerator():
                 else:
                     right = np.append(right, right_array, axis=0)
                 
-                if label is None:
+                if labels is None:
                     labels = np.array([[label]])
                 else:
                     labels = np.append(labels, np.array([[label]]), axis=0)
