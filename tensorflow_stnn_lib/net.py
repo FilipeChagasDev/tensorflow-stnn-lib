@@ -157,10 +157,11 @@ class SiameseNet():
             [left, right], labels = generator[i]
             left_emb = self.get_embeddings(left)
             right_emb = self.get_embeddings(right)
-            positive_left_emb = left_emb[np.squeeze(labels.astype(bool))]
-            positive_right_emb = right_emb[np.squeeze(labels.astype(bool))]
-            negative_left_emb = left_emb[np.squeeze((1-labels).astype(bool))]
-            negative_right_emb = right_emb[np.squeeze((1-labels).astype(bool))]
+            labels = np.squeeze(np.array(labels)).astype(bool)
+            positive_left_emb = left_emb[labels]
+            positive_right_emb = right_emb[labels]
+            negative_left_emb = left_emb[np.logical_not(labels)]
+            negative_right_emb = right_emb[np.logical_not(labels)]
             positive_distances = np.append(positive_distances, distance_fn(positive_left_emb, positive_right_emb))
             negative_distances = np.append(negative_distances, distance_fn(negative_left_emb, negative_right_emb))
         
