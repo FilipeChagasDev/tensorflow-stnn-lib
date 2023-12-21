@@ -13,10 +13,10 @@ def contrastive_loss(y_true: tf.Tensor, y_pred: tf.Tensor, margin: float = 1.0) 
     :return: Contastive loss tensor
     :rtype: tf.Tensor
     """
-    y = tf.cast(y, y_pred.dtype)
+    y_true = tf.cast(y_true, y_pred.dtype)
     squared_y_preds = K.square(y_pred)
     squared_margin = K.square(K.maximum(margin - y_pred, 0))
-    return K.mean(y * squared_y_preds + (1 - y) * squared_margin)
+    return K.mean(y_true * squared_y_preds + (1 - y_true) * squared_margin)
 
 def triplet_loss(y_true: tf.Tensor, y_pred: tf.Tensor, margin: float = 1.0) -> tf.Tensor:    
     """Triplet Loss function
