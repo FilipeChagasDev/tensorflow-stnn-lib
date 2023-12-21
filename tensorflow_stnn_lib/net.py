@@ -153,7 +153,7 @@ class SiameseNet():
     def get_embeddings(self, x: np.ndarray | tf.Tensor):
         return self.__encoder.predict(x, verbose=0)
     
-    def get_test_distances(self, generator: PairDataGenerator, distance: str = 'euclidean'):
+    def get_test_distances(self, generator: PairDataGenerator, distance: str = 'euclidean') -> Tuple[np.ndarray, np.ndarray]:
         if distance == 'euclidean':
             distance_fn = lambda a, b: np.linalg.norm(a-b, axis=1)
         elif distance == 'cosine':
@@ -278,12 +278,13 @@ class TripletNet():
     def get_embeddings(self, x: np.ndarray | tf.Tensor):
         return self.__encoder.predict(x, verbose=0)
     
-    def plot_distance_histogram(self, generator: TripletDataGenerator, distance: str = 'euclidean'):
-        distance_fn = {
-            'euclidean': lambda a, b: np.linalg.norm(a-b, axis=1),
-            'cosine': lambda a, b: 1 - np.sum(a*b, axis=1)/(np.linalg.norm(a, axis=1)*np.linalg.norm(b, axis=1))
-        }[distance]
-
+    def get_test_distances(self, generator: TripletDataGenerator, distance: str = 'euclidean')  -> Tuple[np.ndarray, np.ndarray]:
+        if distance == 'euclidean':
+            distance_fn = lambda a, b: np.linalg.norm(a-b, axis=1)
+        elif distance == 'cosine':
+            distance_fn = lambda a, b: 1 - np.sum(a*b, axis=1)/(np.linalg.norm(a, axis=1)*np.linalg.norm(b, axis=1))
+        else:
+            raise Exception('The chosen distance is invalid')
         positive_distances = np.array([])
         negative_distances = np.array([])
         for i in tqdm(range(len(generator))):  # For each batch index
@@ -294,8 +295,4 @@ class TripletNet():
             negatives_emb = self.get_embeddings(negatives)
             positive_distances = np.append(positive_distances, distance_fn(anchors_emb, positives_emb))
             negative_distances = np.append(negative_distances, distance_fn(anchors_emb, negatives_emb))
-        
-        plt.hist(positive_distances, bins=100, label='Anchor-Positive')
-        plt.hist(negative_distances, bins=100, label='Anchor-Negative', alpha=0.7)
-        plt.legend()
-        plt.show()
+        return positive_distances, negative_distances
