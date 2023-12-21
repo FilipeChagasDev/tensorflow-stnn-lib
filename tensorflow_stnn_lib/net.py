@@ -14,12 +14,12 @@ from tensorflow_stnn_lib.loss import contrastive_loss, triplet_loss
 from tensorflow_stnn_lib.generator import PairDataGenerator, TripletDataGenerator
 
 class TrainingBreaker():
-    def __init__(self, avg_window_size: int = 5, limit: float = -0.001) -> None:
+    def __init__(self, avg_window_size: int = 10, limit: float = -0.001) -> None:
         """This class has a method that signals when the training of an neural network should be interrupted. 
         The interruption of training is authorized when the moving average of the numerical derivative of the validation 
         loss reaches a maximum limit close to 0.
 
-        :param avg_window_size: Window size of the moving average. Defaults to 5
+        :param avg_window_size: Window size of the moving average. Defaults to 10
         :type avg_window_size: int, optional
         :param limit: maximum limit of the moving average of the numerical derivative of validation loss. Defaults to -0.001
         :type limit: float, optional
