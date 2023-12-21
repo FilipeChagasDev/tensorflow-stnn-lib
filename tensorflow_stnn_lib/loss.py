@@ -15,5 +15,5 @@ def triplet_loss(y_true: tf.Tensor, y_pred: tf.Tensor, margin: float = 100.0) ->
     """
     pos_distance = y_pred[0]
     neg_distance = y_pred[1]
-    return K.maximum(pos_distance - neg_distance + margin, 0.0)
+    return K.maximum(pos_distance**2 - neg_distance**2 + margin, 0.0)
     
