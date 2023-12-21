@@ -9,10 +9,10 @@ description = "A Keras-based Python library built to facilitate the implementati
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
-    "numpy == 1.23.5",
-    "pandas == 2.1.1",
-    "tqdm == 4.66",
-    "tensorflow == 2.14",
-    "matplotlib == 3.8.0",
-    "h5py == 3.10.0"
+    "numpy >= 1",
+    "pandas >= 2",
+    "tqdm >= 4",
+    "tensorflow >= 2",
+    "matplotlib >= 3",
+    "h5py => 3"
 ]
