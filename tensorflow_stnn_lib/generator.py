@@ -43,23 +43,23 @@ class TripletDataGenerator():
             #load all the images of the batch
             for i, anchor_addr, anchor_id, pos_addr, pos_id, neg_addr, neg_id in batch_triplets.itertuples():
                 #load data
-                anchor_array = self.__loader_fn(anchor_addr)
-                pos_array = self.__loader_fn(pos_addr)
-                neg_array = self.__loader_fn(neg_addr)
+                anchor_array = np.expand_dims(self.__loader_fn(anchor_addr), axis=0)
+                pos_array = np.expand_dims(self.__loader_fn(pos_addr), axis=0)
+                neg_array = np.expand_dims(self.__loader_fn(neg_addr), axis=0)
 
                 #append data to collections of anchors, positives and negatives
                 if anchors is None:
-                    anchors = np.expand_dims(anchor_array, axis=0)
+                    anchors = anchor_array
                 else:
                     anchors = np.append(anchors, anchor_array, axis=0)
 
                 if positives is None:
-                    positives = np.expand_dims(pos_array, axis=0)
+                    positives = pos_array
                 else:
                     positives = np.append(positives, pos_array, axis=0)
 
                 if negatives is None:
-                    negatives = np.expand_dims(neg_array, axis=0)
+                    negatives = neg_array
                 else:
                     negatives = np.append(negatives, neg_array, axis=0)
          
