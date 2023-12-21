@@ -49,7 +49,7 @@ class TrainingBreaker():
         return False
 
 class TripletNet():
-    def __init__(self, input_shape: tuple, encoder: keras.Model, optimizer: optimizers.Optimizer | str = 'adamax', distance_function: Callable = euclidean_distance):
+    def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 1.0, optimizer: optimizers.Optimizer | str = 'adamax', distance_function: Callable = euclidean_distance):
         self.__input_shape = input_shape
         self.__encoder = encoder
         self.__optimizer = optimizer
@@ -74,7 +74,7 @@ class TripletNet():
 
         # Turn tensors to a keras compiled model.
         self.keras_model = keras.Model(inputs=[input_anchor, input_pos, input_neg], outputs=out)
-        self.keras_model.compile(loss=triplet_loss, optimizer=self.__optimizer)
+        self.keras_model.compile(loss=lambda yt, yp: triplet_loss(yt, yp, margin), optimizer=self.__optimizer)
 
     def fit(self, training_generator: TripletDataGenerator, validation_generator: TripletDataGenerator, epochs: int, start_epoch: int = 1, epoch_end_callback : Callable = None, training_breaker: TrainingBreaker = None) -> Tuple[List[float], List[float]]:
         assert epochs >= 1
