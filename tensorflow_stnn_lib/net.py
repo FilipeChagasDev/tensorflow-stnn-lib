@@ -49,7 +49,7 @@ class TrainingBreaker():
         return False
 
 class TripletNet():
-    def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 1.0, optimizer: optimizers.Optimizer | str = 'adamax', distance_function: Callable = euclidean_distance):
+    def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 100.0, optimizer: optimizers.Optimizer | str = 'adamax', distance_function: Callable = euclidean_distance):
         self.__input_shape = input_shape
         self.__encoder = encoder
         self.__optimizer = optimizer
