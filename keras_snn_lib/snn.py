@@ -149,5 +149,5 @@ class TripletSNN():
         plt.grid()
         plt.show()
 
-    def get_embeddings(self, x: np.array | tf.Tensor):
+    def get_embeddings(self, x: np.ndarray | tf.Tensor):
         return self.__encoder.predict(x, verbose=0)
