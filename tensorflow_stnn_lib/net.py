@@ -9,7 +9,7 @@ from sklearn.metrics import roc_curve, roc_auc_score
 from tqdm import tqdm
 from typing import *
 
-from tensorflow_stnn_lib.distance import euclidean_distance
+from tensorflow_stnn_lib.distance import euclidean_distance, cosine_distance
 from tensorflow_stnn_lib.loss import contrastive_loss, triplet_loss
 from tensorflow_stnn_lib.generator import PairDataGenerator, TripletDataGenerator
 
@@ -48,13 +48,21 @@ class TrainingBreaker():
             if avg_diff_loss > self.__limit:
                 return True
         return False
+    
 
 class SiameseNet():
-    def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 1.0, optimizer: optimizers.Optimizer | str = 'adamax', distance_function: Callable = euclidean_distance):
+    def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 1.0, optimizer: optimizers.Optimizer | str = 'adamax', distance: str = 'euclidean'):
         self.__input_shape = input_shape
         self.__encoder = encoder
         self.__optimizer = optimizer
-        self.__distance_function = distance_function
+
+        if distance == 'euclidean':
+            self.__distance_function = euclidean_distance
+        elif distance == 'cosine':
+            self.__distance_function = cosine_distance
+        else:
+            raise Exception('The chosen distance is invalid')
+        
         self.training_loss_history = []
         self.validation_loss_history = []
 
@@ -146,11 +154,12 @@ class SiameseNet():
         return self.__encoder.predict(x, verbose=0)
     
     def get_test_distances(self, generator: PairDataGenerator, distance: str = 'euclidean'):
-        distance_fn = {
-            'euclidean': lambda a, b: np.linalg.norm(a-b, axis=1),
-            'cosine': lambda a, b: 1 - np.sum(a*b, axis=1)/(np.linalg.norm(a, axis=1)*np.linalg.norm(b, axis=1))
-        }[distance]
-
+        if distance == 'euclidean':
+            distance_fn = lambda a, b: np.linalg.norm(a-b, axis=1)
+        elif distance == 'cosine':
+            distance_fn = lambda a, b: 1 - np.sum(a*b, axis=1)/(np.linalg.norm(a, axis=1)*np.linalg.norm(b, axis=1))
+        else:
+            raise Exception('The chosen distance is invalid')
         positive_distances = np.array([])
         negative_distances = np.array([])
         for i in tqdm(range(len(generator))):  # For each batch index
@@ -167,36 +176,6 @@ class SiameseNet():
             negative_distances = np.append(negative_distances, distance_fn(negative_left_emb, negative_right_emb))
         return positive_distances, negative_distances
 
-    def plot_histogram(self, generator: PairDataGenerator, distance: str = 'euclidean'):
-        positive_distances, negative_distances = self.get_test_distances(generator, distance)
-        plt.hist(positive_distances, bins=100, label='Positive')
-        plt.hist(negative_distances, bins=100, label='Negative', alpha=0.7)
-        plt.legend()
-        plt.show()
-
-    def plot_roc(self, generator: PairDataGenerator, distance: str = 'euclidean') -> float:
-        positive_distances, negative_distances = self.get_test_distances(generator, distance)
-        positive_labels = np.ones(shape=positive_distances.shape)
-        negative_labels = np.zeros(shape=negative_distances.shape)
-        distances = np.append(positive_distances, negative_distances)
-        labels = np.append(positive_labels, negative_labels)
-        lr_fpr, lr_tpr, _ = roc_curve(labels, distances)
-        plt.plot([0,1], [0,1], linestyle='--', label='No Skill', color='gray')
-        plt.plot(lr_fpr, lr_tpr, marker='.', label='Predictions')
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.show()
-        auc = roc_auc_score(labels, distances)
-        print(f'AUC: {auc}')
-        return auc
-
-    def get_roc_auc(self, generator: PairDataGenerator, distance: str = 'euclidean') -> float:
-        positive_distances, negative_distances = self.get_test_distances(generator, distance)
-        positive_labels = np.ones(shape=positive_distances.shape)
-        negative_labels = np.zeros(shape=negative_distances.shape)
-        distances = np.append(positive_distances, negative_distances)
-        labels = np.append(positive_labels, negative_labels)
-        return roc_auc_score(labels, distances)
 
 class TripletNet():
     def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 100.0, optimizer: optimizers.Optimizer | str = 'adamax', distance_function: Callable = euclidean_distance):
