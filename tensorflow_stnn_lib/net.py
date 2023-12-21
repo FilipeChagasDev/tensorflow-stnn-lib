@@ -148,3 +148,25 @@ class TripletNet():
 
     def get_embeddings(self, x: np.ndarray | tf.Tensor):
         return self.__encoder.predict(x, verbose=0)
+    
+    def plot_distance_histogram(self, generator: TripletDataGenerator, distance: str = 'euclidean'):
+        distance_fn = {
+            'euclidean': lambda a, b: np.linalg.norm(a-b, axis=1),
+            'cosine': lambda a, b: 1 - np.sum(a*b, axis=1)/(np.linalg.norm(a, axis=1)*np.linalg.norm(b, axis=1))
+        }[distance]
+
+        positive_distances = np.array([])
+        negative_distances = np.array([])
+        for i in tqdm(range(len(generator))):  # For each batch index
+            # Get the current validation batch
+            [anchors, positives, negatives], vy = generator[i]
+            anchors_emb = self.get_embeddings(anchors)
+            positives_emb = self.get_embeddings(positives)
+            negatives_emb = self.get_embeddings(negatives)
+            positive_distances = np.append(positive_distances, distance_fn(anchors_emb, positives_emb))
+            negative_distances = np.append(negative_distances, distance_fn(anchors_emb, negatives_emb))
+        
+        plt.hist(positive_distances, bins=100, label='Anchor-Positive')
+        plt.hist(negative_distances, bins=100, label='Anchor-Negative', alpha=0.7)
+        plt.legend()
+        plt.show()
