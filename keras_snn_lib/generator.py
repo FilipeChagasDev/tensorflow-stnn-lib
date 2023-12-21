@@ -6,10 +6,10 @@ import os
 from typing import *
 
 class TripletSNNDataGenerator():
-    def __init__(self, batch_size: int, triplets_df: pd.DataFrame, loader_fn: function, name: str = None):
+    def __init__(self, batch_size: int, triplets_df: pd.DataFrame, loader_fn: callable, name: str = None):
         assert isinstance(batch_size, int)
         assert isinstance(triplets_df, pd.DataFrame)
-        assert isinstance(loader_fn, function)
+        assert isinstance(loader_fn, callable)
         assert isinstance(name, str)
         self.__batch_size = batch_size
         self.__triplets_df = triplets_df
