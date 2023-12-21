@@ -11,7 +11,7 @@ class TripletDataGenerator():
         assert isinstance(batch_size, int)
         assert isinstance(triplets_df, pd.DataFrame)
         assert isinstance(loader_fn, Callable)
-        assert isinstance(name, str)
+        assert isinstance(name, (str, type(None)))
         self.__batch_size = batch_size
         self.__triplets_df = triplets_df
         self.__loader_fn = loader_fn
