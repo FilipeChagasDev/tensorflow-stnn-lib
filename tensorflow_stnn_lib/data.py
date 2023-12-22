@@ -5,13 +5,44 @@ import h5py as h5
 import os
 from typing import *
 
+def dataset_df_to_pairs_df(dataset_df: pd.DataFrame) -> pd.DataFrame:
+    #Make a dataframe of positive (same class) pairs
+    def make_pos_pairs(group):
+        group_left = group.reset_index(drop=True).rename(columns={'addr': 'addr_left', 'class': 'class_left'})
+        group_right = group.sample(frac=1).reset_index(drop=True).rename(columns={'addr': 'addr_right', 'class': 'class_right'})
+        group_pairs = pd.concat([group_left, group_right], axis=1)
+        return group_pairs
+
+    pos_pairs_df = dataset_df.groupby('class', as_index=False, group_keys=False).apply(make_pos_pairs)
+    pos_pairs_df['label'] = 1
+    
+    #Make a dataframe of negative (different classes) pairs
+    def make_neg_pairs(group):
+        group_class = group['class'].iloc[0]
+        group_left = group.reset_index(drop=True).rename(columns={'addr': 'addr_left', 'class': 'class_left'})
+        group_right = dataset_df[dataset_df['class'] != group_class].sample(n=group.shape[0])
+        group_right = group_right.reset_index(drop=True).rename(columns={'addr': 'addr_right', 'class': 'class_right'})
+        group_pairs = pd.concat([group_left, group_right], axis=1)
+        return group_pairs
+
+    neg_pairs_df = dataset_df.groupby('class', as_index=False, group_keys=False).apply(make_neg_pairs)
+    neg_pairs_df['label'] = 0
+
+    #Concatenate and shuffle positive and negative pairs
+    pairs_df = pd.concat([pos_pairs_df, neg_pairs_df]).sample(frac=1).reset_index(drop=True)
+    return pairs_df
+
+def array_dataset_to_pairs_df(dataset_x: np.ndarray, dataset_y: np.ndarray) -> pd.DataFrame:
+    dataset_df = pd.DataFrame({'addr': np.arange(dataset_x.shape[0]), 'class': dataset_y})
+    return dataset_df_to_pairs_df(dataset_df)
+    
 class PairDataset():
-    def __init__(self, batch_size: int, pairs_df: pd.DataFrame, dataset_x: np.ndarray):
+    def __init__(self, batch_size: int, dataset_x: np.ndarray, dataset_y: np.ndarray):
         assert isinstance(batch_size, int)
-        assert isinstance(pairs_df, pd.DataFrame)
         assert isinstance(dataset_x, np.ndarray)
+        assert isinstance(dataset_y, np.ndarray)
         self.__batch_size = batch_size
-        self.__pairs_df = pairs_df
+        self.__pairs_df = array_dataset_to_pairs_df(dataset_x, dataset_y)
         self.__dataset_x = dataset_x
         self.__n_batches = (self.__pairs_df.shape[0])//self.__batch_size
         self.__dataset_x_left = self.__dataset_x[self.__pairs_df['addr_left']]

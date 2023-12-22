@@ -11,7 +11,7 @@ from typing import *
 
 from tensorflow_stnn_lib.distance import euclidean_distance, cosine_distance
 from tensorflow_stnn_lib.loss import contrastive_loss, triplet_loss
-from tensorflow_stnn_lib.generator import PairDataGenerator, TripletDataGenerator, PairDataset
+from tensorflow_stnn_lib.data import PairDataGenerator, TripletDataGenerator, PairDataset
 from tensorflow_stnn_lib.metrics import get_roc_auc
 
 class TrainingBreaker():
@@ -216,27 +216,18 @@ class SiameseNet():
         ax1.plot(epochs, self.validation_loss_history, color=color, linestyle='--', label='Validation Loss')
         ax1.tick_params(axis='y', labelcolor=color)
         ax1.set_yscale('log')
-        ax1.legend()
-
-        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        
+        ax2 = ax1.twinx()
         color = 'tab:red'
-        ax2.set_ylabel('AUC', color=color)  # we already handled the x-label with ax1
+        ax2.set_ylabel('AUC', color=color)
         ax2.plot(epochs, self.validation_auc_history, color=color, linestyle='-.',label='Validation AUC')
         ax2.tick_params(axis='y', labelcolor=color)
+
+        ax1.legend()
         ax2.legend()
 
-        fig.tight_layout()  # otherwise the right y-label is slightly clipped
-        #plt.legend()
+        fig.tight_layout()
         plt.show()
-
-        #plt.plot(, self.training_loss_history, label='Training')
-        #plt.plot([i+1 for i in range(len(self.validation_loss_history))], self.validation_loss_history, label='Validation')
-        #plt.yscale('log')
-        #plt.xlabel('Epochs')
-        #plt.ylabel('Loss')
-        #plt.legend()
-        #plt.grid()
-        #plt.show()
 
     def get_embeddings(self, x: np.ndarray | tf.Tensor) -> np.ndarray:
         """Gets the embeddings of an input array
