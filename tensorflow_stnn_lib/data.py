@@ -41,6 +41,9 @@ class PairDataset():
         assert isinstance(batch_size, int)
         assert isinstance(dataset_x, np.ndarray)
         assert isinstance(dataset_y, np.ndarray)
+        assert dataset_x.ndim > 1
+        assert dataset_y.ndim == 1
+        assert dataset_x.shape[0] == dataset_y.shape[0]
         self.__batch_size = batch_size
         self.__pairs_df = array_dataset_to_pairs_df(dataset_x, dataset_y)
         self.__dataset_x = dataset_x
@@ -154,6 +157,7 @@ class PairDataGenerator():
         labels = batch_h5['labels']
         return [left, right], labels
     
+'''
 class TripletDataGenerator():
     """Triplet neural network data generator. 
     This class is used to provide the neural network's training or test data so that it doesn't consume too much RAM.  
@@ -243,3 +247,4 @@ class TripletDataGenerator():
         negatives = batch_h5['negatives']
         #return (x,y), where x=[anchor, positive, negative] and y=0 (it's ignored by the triplet loss function)
         return [anchors, positives, negatives], np.zeros(shape=(self.__batch_size,1))
+'''

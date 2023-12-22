@@ -272,7 +272,7 @@ class SiameseNet():
             negative_distances = np.append(negative_distances, distance_fn(negative_left_emb, negative_right_emb))
         return positive_distances, negative_distances
 
-
+'''
 class TripletNet():
     """
     Triplet Neural Network
@@ -471,3 +471,4 @@ class TripletNet():
             positive_distances = np.append(positive_distances, distance_fn(anchors_emb, positives_emb))
             negative_distances = np.append(negative_distances, distance_fn(anchors_emb, negatives_emb))
         return positive_distances, negative_distances
+'''
