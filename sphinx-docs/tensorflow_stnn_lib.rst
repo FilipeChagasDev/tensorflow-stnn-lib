@@ -1,29 +1,21 @@
 tensorflow\_stnn\_lib package
 =============================
 
-Submodules
-----------
+Main features
+-------------
 
-tensorflow\_stnn\_lib.distance module
--------------------------------------
+tensorflow\_stnn\_lib.net module
+--------------------------------
 
-.. automodule:: tensorflow_stnn_lib.distance
+.. automodule:: tensorflow_stnn_lib.net
    :members:
    :undoc-members:
    :show-inheritance:
 
-tensorflow\_stnn\_lib.generator module
---------------------------------------
-
-.. automodule:: tensorflow_stnn_lib.generator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-tensorflow\_stnn\_lib.loss module
+tensorflow\_stnn\_lib.data module
 ---------------------------------
 
-.. automodule:: tensorflow_stnn_lib.loss
+.. automodule:: tensorflow_stnn_lib.data
    :members:
    :undoc-members:
    :show-inheritance:
@@ -36,18 +28,24 @@ tensorflow\_stnn\_lib.metrics module
    :undoc-members:
    :show-inheritance:
 
-tensorflow\_stnn\_lib.net module
---------------------------------
 
-.. automodule:: tensorflow_stnn_lib.net
+Internal features
+-----------------
+
+tensorflow\_stnn\_lib.distance module
+-------------------------------------
+
+.. automodule:: tensorflow_stnn_lib.distance
    :members:
    :undoc-members:
    :show-inheritance:
 
-Module contents
----------------
+tensorflow\_stnn\_lib.loss module
+---------------------------------
 
-.. automodule:: tensorflow_stnn_lib
+.. automodule:: tensorflow_stnn_lib.loss
    :members:
    :undoc-members:
    :show-inheritance:
+
+

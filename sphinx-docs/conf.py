@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.abspath('../'))
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = 'Tensorflow STNN Lib'
+project = 'Tensorflow STNN lib'
 copyright = '2023, Filipe Chagas Ferraz'
 author = 'Filipe Chagas Ferraz'
 
@@ -19,10 +19,9 @@ author = 'Filipe Chagas Ferraz'
 
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.viewcode',  
+    'sphinx.ext.viewcode',
     'sphinx.ext.todo',
-    'sphinx_autodoc_typehints',
-    'sphinx_markdown_builder'
+    'sphinx_markdown_builder',
 ]
 
 templates_path = ['_templates']
@@ -33,7 +32,7 @@ language = 'en'
 # -- Options for HTML output -------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#options-for-html-output
 
-html_theme = 'sphinx_rtd_theme'
+html_theme = 'alabaster'
 html_static_path = ['_static']
 
 # -- Options for todo extension ----------------------------------------------

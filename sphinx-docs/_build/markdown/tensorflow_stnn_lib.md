@@ -1,10 +1,66 @@
 # tensorflow_stnn_lib package
 
-## Submodules
+## Main features
+
+## tensorflow_stnn_lib.net module
+
+## tensorflow_stnn_lib.data module
+
+### *class* tensorflow_stnn_lib.data.PairDataGenerator(batch_size: int, dataset_df: DataFrame, loader_fn: Callable, name: str = None)
+
+Bases: `object`
+
+This class should be used instead of PairDataset when SiameseNet needs to be trained with a large volume of data 
+and this data is in files on disk. The PairDataGenerator class will load the files from disk and convert them to HDF5 
+datasets (one for each batch). This way, only the RAM needed to store one batch of the dataset is used at a time, avoiding 
+memory overflow problems.
+
+#### get_batch_files(index: int)
+
+#### get_batch_size()
+
+### *class* tensorflow_stnn_lib.data.PairDataset(batch_size: int, dataset_x: ndarray, dataset_y: ndarray)
+
+Bases: `object`
+
+This class provides SiameseNet with the sample pairs from a dataset in NumPy format. 
+It is ideal for small practices and experiments. For large volumes of data, use PairDataGenerator instead.
+
+#### get_batch(index: int)
+
+#### get_batch_size()
+
+### tensorflow_stnn_lib.data.array_dataset_to_pairs_df(dataset_x: ndarray, dataset_y: ndarray)
+
+Internal function that generates a dataframe of pairs for a dataset in NumPy format (in the MNIST digit dataset standard).
+
+* **Parameters:**
+  * **dataset_x** (*np.ndarray*) – NumPy array containing the input samples. This array must have more than one dimension, and the index of the first dimension must be the index of the sample, following the pattern of the MNIST digit dataset.
+  * **dataset_y** (*np.ndarray*) – NumPy array containing the classes/labels of the samples. This array must have only one dimension, following the pattern of the MNIST digit dataset.
+* **Returns:**
+  Output pairs dataframe
+* **Return type:**
+  pd.DataFrame
+
+### tensorflow_stnn_lib.data.dataset_df_to_pairs_df(dataset_df: DataFrame)
+
+Internal function responsible for transforming an addr-class dataframe into a pair dataframe with addr_left, 
+class_left, addr_right, class_right and label columns.
+
+* **Parameters:**
+  **dataset_df** (*pd.DataFrame*) – Input addr-class dataframe.
+* **Returns:**
+  Output pairs dataframe
+* **Return type:**
+  pd.DataFrame
+
+## tensorflow_stnn_lib.metrics module
+
+## Internal features
 
 ## tensorflow_stnn_lib.distance module
 
-### tensorflow_stnn_lib.distance.cosine_distance(vectors)
+### tensorflow_stnn_lib.distance.cosine_distance(vectors: Tuple[Tensor, Tensor])
 
 Cosine distance between two vectors.
 
@@ -15,7 +71,7 @@ Cosine distance between two vectors.
 * **Return type:**
   tf.Tensor
 
-### tensorflow_stnn_lib.distance.euclidean_distance(vectors)
+### tensorflow_stnn_lib.distance.euclidean_distance(vectors: Tuple[Tensor, Tensor])
 
 Euclidean distance between two vectors.
 Ref: [https://www.pyimagesearch.com/2021/01/18/contrastive-loss-for-siamese-networks-with-keras-and-tensorflow/](https://www.pyimagesearch.com/2021/01/18/contrastive-loss-for-siamese-networks-with-keras-and-tensorflow/)
@@ -27,45 +83,9 @@ Ref: [https://www.pyimagesearch.com/2021/01/18/contrastive-loss-for-siamese-netw
 * **Return type:**
   tf.Tensor
 
-## tensorflow_stnn_lib.generator module
-
-### *class* tensorflow_stnn_lib.generator.PairDataGenerator(batch_size, pairs_df, loader_fn, name=None)
-
-Bases: `object`
-
-Siamese neural network data generator. 
-This class is used to provide the neural network’s training or test data so that it doesn’t consume too much RAM.
-
-#### get_batch_files(index)
-
-* **Return type:**
-  `File`
-
-#### get_batch_size()
-
-* **Return type:**
-  `int`
-
-### *class* tensorflow_stnn_lib.generator.TripletDataGenerator(batch_size, triplets_df, loader_fn, name=None)
-
-Bases: `object`
-
-Triplet neural network data generator. 
-This class is used to provide the neural network’s training or test data so that it doesn’t consume too much RAM.
-
-#### get_batch_files(index)
-
-* **Return type:**
-  `File`
-
-#### get_batch_size()
-
-* **Return type:**
-  `int`
-
 ## tensorflow_stnn_lib.loss module
 
-### tensorflow_stnn_lib.loss.contrastive_loss(y_true, y_pred, margin=1.0)
+### tensorflow_stnn_lib.loss.contrastive_loss(y_true: Tensor, y_pred: Tensor, margin: float = 1.0)
 
 Contrastive Loss function
 
@@ -78,7 +98,7 @@ Contrastive Loss function
 * **Return type:**
   tf.Tensor
 
-### tensorflow_stnn_lib.loss.triplet_loss(y_true, y_pred, margin=1.0)
+### tensorflow_stnn_lib.loss.triplet_loss(y_true: Tensor, y_pred: Tensor, margin: float = 1.0)
 
 Triplet Loss function
 
@@ -90,198 +110,3 @@ Triplet Loss function
   triplet loss tensor
 * **Return type:**
   tf.Tensor
-
-## tensorflow_stnn_lib.metrics module
-
-### tensorflow_stnn_lib.metrics.get_roc_auc(positive_distances, negative_distances)
-
-Obtains the area under the ROC curve (AUC).
-
-* **Parameters:**
-  * **positive_distances** (*np.ndarray*) – Array of positive distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
-  * **negative_distances** (*np.ndarray*) – Array of negative distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
-* **Returns:**
-  AUC
-* **Return type:**
-  float
-
-### tensorflow_stnn_lib.metrics.plot_histogram(positive_distances, negative_distances)
-
-Plot a histogram showing the distributions of positive and negative distances.
-
-* **Parameters:**
-  * **positive_distances** (*np.ndarray*) – Array of positive distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
-  * **negative_distances** (*np.ndarray*) – Array of negative distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
-
-### tensorflow_stnn_lib.metrics.plot_roc(positive_distances, negative_distances)
-
-Plots a ROC curve of the encoder’s predictions.
-
-* **Parameters:**
-  * **positive_distances** (*np.ndarray*) – Array of positive distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
-  * **negative_distances** (*np.ndarray*) – Array of negative distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
-
-## tensorflow_stnn_lib.net module
-
-### *class* tensorflow_stnn_lib.net.SiameseNet(input_shape, encoder, margin=1.0, optimizer='adamax', distance='euclidean')
-
-Bases: `object`
-
-Siamese Neural Network
-
-#### fit(training_generator, validation_generator, epochs, start_epoch=1, epoch_end_callback=None, training_breaker=None)
-
-SNN training method. You must provide the training and validation data via PairDataGenerators. 
-The use of these generators is mandatory and they serve to reduce the use of RAM memory. 
-In addition, you can provide an end-of-epoch callback function and a TrainingBreaker object, 
-which is responsible for stopping the training when there is no more evolution in the validation loss.
-
-* **Parameters:**
-  * **training_generator** ([*PairDataGenerator*](#tensorflow_stnn_lib.generator.PairDataGenerator)) – Training data generator
-  * **validation_generator** ([*PairDataGenerator*](#tensorflow_stnn_lib.generator.PairDataGenerator)) – Validation data generator
-  * **epochs** (*int*) – Number of training epochs
-  * **start_epoch** (*int**,* *optional*) – Initial epoch, defaults to 1
-  * **epoch_end_callback** (*Callable**,* *optional*) – This function is called up at the end of each training season. This function receives a dictionary as an argument, containing the SiameseNet object, the training epoch, the training loss and the validation loss. Defaults to None
-  * **training_breaker** ([*TrainingBreaker*](#tensorflow_stnn_lib.net.TrainingBreaker)*,* *optional*) – Object responsible for signaling that training should be interrupted when there is no progress in the validation loss. Defaults to None
-
-#### get_embeddings(x)
-
-Gets the embeddings of an input array
-
-* **Parameters:**
-  **x** (*np.ndarray* *|* *tf.Tensor*) – Input array or tensor
-* **Returns:**
-  Embedding array
-* **Return type:**
-  np.ndarray
-
-#### get_encoder()
-
-* **Returns:**
-  Encoder network
-* **Return type:**
-  keras.Model
-
-#### get_test_distances(generator, distance='euclidean')
-
-Obtains positive and negative pair distances from embeddings to analyze encoder performance.
-
-* **Parameters:**
-  * **generator** ([*PairDataGenerator*](#tensorflow_stnn_lib.generator.PairDataGenerator)) – Test data generator
-  * **distance** (*str**,* *optional*) – Distance function used (‘euclidean’ or ‘cosine’). Defaults to ‘euclidean’. Defaults to ‘euclidean’
-* **Raises:**
-  **Exception** – The chosen distance is invalid
-* **Returns:**
-  Tuple with two arrays: positive_distances and negative_distances. Both arrays are one-dimensional.
-* **Return type:**
-  Tuple[np.ndarray, np.ndarray]
-
-#### load_encoder(path)
-
-Load encoder weights from a file
-
-* **Parameters:**
-  **path** (*str*) – file path
-
-#### plot_loss()
-
-Plot a line chart with the evolution of the training and validation losses over the course of the training
-
-#### save_encoder(path)
-
-Save encoder weights to a file
-
-* **Parameters:**
-  **path** (*str*) – target file path
-
-### *class* tensorflow_stnn_lib.net.TrainingBreaker(avg_window_size=10, limit=-0.001)
-
-Bases: `object`
-
-#### eval(val_loss)
-
-Computes the moving average of the derivative of the validation loss and returns True if it is time to stop training
-
-* **Parameters:**
-  **val_loss** (*float*) – Last validation loss computed
-* **Returns:**
-  True if it’s time to strop training
-* **Return type:**
-  bool
-
-#### reset()
-
-Clears the moving average queue
-
-### *class* tensorflow_stnn_lib.net.TripletNet(input_shape, encoder, margin=100.0, optimizer='adamax', distance='euclidean')
-
-Bases: `object`
-
-Triplet Neural Network
-
-#### fit(training_generator, validation_generator, epochs, start_epoch=1, epoch_end_callback=None, training_breaker=None)
-
-TNN training method. You must provide the training and validation data via TripletDataGenerator. 
-The use of these generators is mandatory and they serve to reduce the use of RAM memory. 
-In addition, you can provide an end-of-epoch callback function and a TrainingBreaker object, 
-which is responsible for stopping the training when there is no more evolution in the validation loss.
-
-* **Parameters:**
-  * **training_generator** ([*TripletDataGenerator*](#tensorflow_stnn_lib.generator.TripletDataGenerator)) – Training data generator
-  * **validation_generator** ([*TripletDataGenerator*](#tensorflow_stnn_lib.generator.TripletDataGenerator)) – Validation data generator
-  * **epochs** (*int*) – Number of training epochs
-  * **start_epoch** (*int**,* *optional*) – Initial epoch, defaults to 1
-  * **epoch_end_callback** (*Callable**,* *optional*) – This function is called up at the end of each training season. This function receives a dictionary as an argument, containing the SiameseNet object, the training epoch, the training loss and the validation loss. Defaults to None
-  * **training_breaker** ([*TrainingBreaker*](#tensorflow_stnn_lib.net.TrainingBreaker)*,* *optional*) – Object responsible for signaling that training should be interrupted when there is no progress in the validation loss. Defaults to None
-
-#### get_embeddings(x)
-
-Gets the embeddings of an input array
-
-* **Parameters:**
-  **x** (*np.ndarray* *|* *tf.Tensor*) – Input array or tensor
-* **Returns:**
-  Embedding array
-* **Return type:**
-  np.ndarray
-
-#### get_encoder()
-
-* **Returns:**
-  Encoder network
-* **Return type:**
-  keras.Model
-
-#### get_test_distances(generator, distance='euclidean')
-
-Obtains positive and negative pair distances from embeddings to analyze encoder performance.
-
-* **Parameters:**
-  * **generator** ([*PairDataGenerator*](#tensorflow_stnn_lib.generator.PairDataGenerator)) – Test data generator
-  * **distance** (*str**,* *optional*) – Distance function used (‘euclidean’ or ‘cosine’). Defaults to ‘euclidean’. Defaults to ‘euclidean’
-* **Raises:**
-  **Exception** – The chosen distance is invalid
-* **Returns:**
-  Tuple with two arrays: positive_distances and negative_distances. Both arrays are one-dimensional.
-* **Return type:**
-  Tuple[np.ndarray, np.ndarray]
-
-#### load_encoder(path)
-
-Load encoder weights from a file
-
-* **Parameters:**
-  **path** (*str*) – file path
-
-#### plot_loss()
-
-Plot a line chart with the evolution of the training and validation losses over the course of the training
-
-#### save_encoder(path)
-
-Save encoder weights to a file
-
-* **Parameters:**
-  **path** (*str*) – target file path
-
-## Module contents

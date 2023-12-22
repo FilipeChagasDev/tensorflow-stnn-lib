@@ -6,6 +6,14 @@ import os
 from typing import *
 
 def dataset_df_to_pairs_df(dataset_df: pd.DataFrame) -> pd.DataFrame:
+    """Internal function responsible for transforming an addr-class dataframe into a pair dataframe with addr_left, 
+    class_left, addr_right, class_right and label columns.
+
+    :param dataset_df: Input addr-class dataframe.
+    :type dataset_df: pd.DataFrame
+    :return: Output pairs dataframe
+    :rtype: pd.DataFrame
+    """
     #Make a dataframe of positive (same class) pairs
     def make_pos_pairs(group):
         group_left = group.reset_index(drop=True).rename(columns={'addr': 'addr_left', 'class': 'class_left'})
@@ -33,11 +41,32 @@ def dataset_df_to_pairs_df(dataset_df: pd.DataFrame) -> pd.DataFrame:
     return pairs_df
 
 def array_dataset_to_pairs_df(dataset_x: np.ndarray, dataset_y: np.ndarray) -> pd.DataFrame:
+    """Internal function that generates a dataframe of pairs for a dataset in NumPy format (in the MNIST digit dataset standard).
+
+    :param dataset_x: NumPy array containing the input samples. This array must have more than one dimension, and the index of the first dimension must be the index of the sample, following the pattern of the MNIST digit dataset.
+    :type dataset_x: np.ndarray
+    :param dataset_y: NumPy array containing the classes/labels of the samples. This array must have only one dimension, following the pattern of the MNIST digit dataset.
+    :type dataset_y: np.ndarray
+    :return: Output pairs dataframe
+    :rtype: pd.DataFrame
+    """
     dataset_df = pd.DataFrame({'addr': np.arange(dataset_x.shape[0]), 'class': dataset_y})
     return dataset_df_to_pairs_df(dataset_df)
     
 class PairDataset():
+    """
+    This class provides SiameseNet with the sample pairs from a dataset in NumPy format. 
+    It is ideal for small practices and experiments. For large volumes of data, use PairDataGenerator instead.
+    """
     def __init__(self, batch_size: int, dataset_x: np.ndarray, dataset_y: np.ndarray):
+        """
+        :param batch_size: Size of training/test batches
+        :type batch_size: int
+        :param dataset_x: NumPy array containing the input samples. This array must have more than one dimension, and the index of the first dimension must be the index of the sample, following the pattern of the MNIST digit dataset.
+        :type dataset_x: np.ndarray
+        :param dataset_y: NumPy array containing the classes/labels of the samples. This array must have only one dimension, following the pattern of the MNIST digit dataset.
+        :type dataset_y: np.ndarray
+        """
         assert isinstance(batch_size, int)
         assert isinstance(dataset_x, np.ndarray)
         assert isinstance(dataset_y, np.ndarray)
@@ -70,26 +99,31 @@ class PairDataset():
     
 
 class PairDataGenerator():
-    """Siamese neural network data generator. 
-    This class is used to provide the neural network's training or test data so that it doesn't consume too much RAM.  
     """
-    def __init__(self, batch_size: int, pairs_df: pd.DataFrame, loader_fn: Callable, name: str = None):
+    This class should be used instead of PairDataset when SiameseNet needs to be trained with a large volume of data 
+    and this data is in files on disk. The PairDataGenerator class will load the files from disk and convert them to HDF5 
+    datasets (one for each batch). This way, only the RAM needed to store one batch of the dataset is used at a time, avoiding 
+    memory overflow problems.
+    """
+    def __init__(self, batch_size: int, dataset_df: pd.DataFrame, loader_fn: Callable, name: str = None):
         """
         :param batch_size: Size of training/test batches
         :type batch_size: int
-        :param pairs_df: DataFrame containing the input data pairs and their respective labels. See the examples to see how this DataFrame should be structured.
-        :type pairs_df: pd.DataFrame
-        :param loader_fn: Function responsible for loading the samples from disk. This function must receive the address of the sample (present in the DataFrame) and return the sample as a NumPy Array.
+        :param dataset_df: DataFrame containing an 'addr' column and a 'class' column. Each row of this DataFrame corresponds to a sample of the dataset. The row's 'addr' attribute contains the name of the file where the sample is stored (or some other information that identifies the sample on disk), and the 'class' attribute contains the sample's class number.
+        :type dataset_df: pd.DataFrame
+        :param loader_fn: Function responsible for loading the samples from disk. This function must receive the address of the sample (the 'addr' attribute in the dataset_df) and return the sample as a NumPy Array.
         :type loader_fn: Callable
         :param name: Generator name. It's important to define this name if you don't want a new generator to be generated every time your script is run. Defaults to None
         :type name: str, optional
         """
         assert isinstance(batch_size, int)
-        assert isinstance(pairs_df, pd.DataFrame)
+        assert isinstance(dataset_df, pd.DataFrame)
         assert isinstance(loader_fn, Callable)
         assert isinstance(name, (str, type(None)))
+        assert 'addr' in dataset_df.columns
+        assert 'class' in dataset_df.columns
         self.__batch_size = batch_size
-        self.__pair_df = pairs_df
+        self.__pair_df = dataset_df_to_pairs_df(dataset_df)
         self.__loader_fn = loader_fn
         self.__name = name if name is not None else f'gen{id(self)}'
         self.__n_batches = (self.__pair_df.shape[0])//self.__batch_size
@@ -117,7 +151,7 @@ class PairDataGenerator():
         batch_file_path = os.path.join(self.__name, f'{self.__name}_{index}.h5')
         if not os.path.exists(batch_file_path):
             #load all the images of the batch
-            for i, left_addr, left_id, right_addr, right_id, label in batch_triplets.itertuples():
+            for i, left_addr, left_class, right_addr, right_class, label in batch_triplets.itertuples():
                 #load data
                 left_array = np.expand_dims(self.__loader_fn(left_addr), axis=0)
                 right_array = np.expand_dims(self.__loader_fn(right_addr), axis=0)

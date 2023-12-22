@@ -6,7 +6,6 @@ from tensorflow.keras import optimizers
 import tensorflow.keras.backend as K
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
-from sklearn.metrics import roc_curve, roc_auc_score
 from tqdm.auto import tqdm
 from typing import *
 
