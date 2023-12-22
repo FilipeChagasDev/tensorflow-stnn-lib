@@ -82,6 +82,7 @@ class SiameseNet():
         
         self.training_loss_history = []
         self.validation_loss_history = []
+        self.validation_auc_history = []
 
         input_left = layers.Input(shape=self.__input_shape)
         input_right = layers.Input(shape=self.__input_shape)
@@ -124,6 +125,7 @@ class SiameseNet():
 
         self.training_loss_history = []
         self.validation_loss_history = []
+        self.validation_auc_history = []
 
         if training_breaker is not None:
             training_breaker.reset()
@@ -144,9 +146,8 @@ class SiameseNet():
                 training_loss_sum += self.keras_model.train_on_batch(x, y, return_dict=True)['loss']
                 training_loss = training_loss_sum / (i+1)  # Update loss mean
 
-            print(f'training_loss={training_loss:.4f}')
-            self.training_loss_history.append(training_loss)
-
+            print(f'Training Loss: {training_loss:.4f}')
+            
             # --- Epoch validation loop ---
             for i in tqdm(range(len(validation_generator))):  # For each batch index
                 # Get the current validation batch
@@ -160,10 +161,12 @@ class SiameseNet():
                 validation_loss = validation_loss_sum / (i+1)  # Update loss mean
                 validation_auc = validation_auc_sum / (i+1) #Update AUC mean
 
-            print(f'validation_loss={validation_loss:.4f}')
-            print(f'AUC={validation_auc:.4f}')
+            print(f'Validation Loss: {validation_loss:.4f}')
+            print(f'Validation AUC: {validation_auc:.4f}')
 
+            self.training_loss_history.append(training_loss)
             self.validation_loss_history.append(validation_loss)
+            self.validation_auc_history.append(validation_auc)
 
             if epoch_end_callback is not None:
                 epoch_end_callback({
@@ -201,17 +204,37 @@ class SiameseNet():
         """
         self.__encoder.load_weights(path)
 
-    def plot_loss(self):
-        """Plot a line chart with the evolution of the training and validation losses over the course of the training
+    def plot_training_history(self):
+        """Plot a line chart with the evolution of the training loss, validation loss and validation AUC over the course of the training.
         """
-        plt.plot([i+1 for i in range(len(self.training_loss_history))], self.training_loss_history, label='Training')
-        plt.plot([i+1 for i in range(len(self.validation_loss_history))], self.validation_loss_history, label='Validation')
-        plt.yscale('log')
-        plt.xlabel('Epochs')
-        plt.ylabel('Loss')
+        epochs = np.arange(len(self.training_loss_history))+1
+        fig, ax1 = plt.subplots()
+        color = 'tab:red'
+        ax1.set_xlabel('Epochs')
+        ax1.set_ylabel('Loss', color=color)
+        ax1.plot(epochs, self.training_loss_history, color=color, label='Training Loss')
+        ax1.plot(epochs, self.validation_loss_history, color=color, marker='-', label='Validation Loss')
+        ax1.tick_params(axis='y', labelcolor=color)
+        ax1.set_yscale('log')
+
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+        color = 'tab:blue'
+        ax2.set_ylabel('AUC', color=color)  # we already handled the x-label with ax1
+        ax2.plot(epochs, self.validation_auc_history, color=color, label='Validation AUC')
+        ax2.tick_params(axis='y', labelcolor=color)
+
+        fig.tight_layout()  # otherwise the right y-label is slightly clipped
         plt.legend()
-        plt.grid()
         plt.show()
+
+        #plt.plot(, self.training_loss_history, label='Training')
+        #plt.plot([i+1 for i in range(len(self.validation_loss_history))], self.validation_loss_history, label='Validation')
+        #plt.yscale('log')
+        #plt.xlabel('Epochs')
+        #plt.ylabel('Loss')
+        #plt.legend()
+        #plt.grid()
+        #plt.show()
 
     def get_embeddings(self, x: np.ndarray | tf.Tensor) -> np.ndarray:
         """Gets the embeddings of an input array
