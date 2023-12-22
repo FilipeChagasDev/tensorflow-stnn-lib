@@ -39,7 +39,6 @@ def plot_roc(positive_distances: np.ndarray, negative_distances: np.ndarray):
     plt.ylabel('True Positive Rate')
     plt.show()
 
-
 def get_roc_auc(positive_distances: np.ndarray, negative_distances: np.ndarray) -> float:     
     """Obtains the area under the ROC curve (AUC).
 

@@ -12,6 +12,7 @@ from typing import *
 from tensorflow_stnn_lib.distance import euclidean_distance, cosine_distance
 from tensorflow_stnn_lib.loss import contrastive_loss, triplet_loss
 from tensorflow_stnn_lib.generator import PairDataGenerator, TripletDataGenerator, PairDataset
+from tensorflow_stnn_lib.metrics import get_roc_auc
 
 class TrainingBreaker():
     def __init__(self, avg_window_size: int = 10, limit: float = -0.001) -> None:
@@ -129,13 +130,12 @@ class SiameseNet():
 
         for epoch in range(start_epoch-1, epochs):  # For each epoch
             print(f'EPOCH {epoch+1} OF {epochs}')
-
-            # This variable will accumulate sums of the loss of each step of train_on_batch
-            training_loss_sum = 0
-            # This variable will accumulate sums of the loss of each step of eval-on-batch
-            validation_loss_sum = 0
+            training_loss_sum = 0 # This variable will accumulate sums of the loss of each step of train_on_batch
+            validation_loss_sum = 0 # This variable will accumulate sums of the loss of each step of eval-on-batch
+            validation_auc_sum = 0
             training_loss = 0  # This variable will be updated to each iteration with the mean of the loss of each step of train_on_batch
             validation_loss = 0  # This variable will be updated to each iteration with the mean of the loss of each step of eval-on-batch
+            validation_auc = 0
 
             # --- Epoch training loop ---
             for i in tqdm(range(len(training_generator))):  # For each batch index
@@ -151,10 +151,18 @@ class SiameseNet():
             for i in tqdm(range(len(validation_generator))):  # For each batch index
                 # Get the current validation batch
                 vx, vy = validation_generator[i]
-                validation_loss_sum += self.keras_model.evaluate(vx, vy, batch_size=validation_generator.get_batch_size(), verbose=0, return_dict=True)['loss']  # evaluate model with the current batch
+                vp = self.keras_model.predict(vx)
+                validation_loss_sum += contrastive_loss(vy, vp)
+                v_pos_dist = np.squeeze(vp[np.squeeze(vy.astype(bool))])
+                v_neg_dist = np.squeeze(vp[np.squeeze(np.logical_not(vy.astype(bool)))])
+                validation_auc_sum += get_roc_auc(v_pos_dist, v_neg_dist)
+                #validation_loss_sum += self.keras_model.evaluate(vx, vy, batch_size=validation_generator.get_batch_size(), verbose=0, return_dict=True)['loss']  # evaluate model with the current batch
                 validation_loss = validation_loss_sum / (i+1)  # Update loss mean
+                validation_auc = validation_auc_sum / (i+1) #Update AUC mean
 
             print(f'validation_loss={validation_loss:.4f}')
+            print(f'AUC={validation_auc:.4f}')
+            
             self.validation_loss_history.append(validation_loss)
 
             if epoch_end_callback is not None:
