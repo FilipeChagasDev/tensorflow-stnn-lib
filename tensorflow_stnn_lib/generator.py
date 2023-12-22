@@ -5,6 +5,35 @@ import h5py as h5
 import os
 from typing import *
 
+class PairDataset():
+    def __init__(self, batch_size: int, pairs_df: pd.DataFrame, dataset_x: np.ndarray):
+        assert isinstance(batch_size, int)
+        assert isinstance(pairs_df, pd.DataFrame)
+        assert isinstance(dataset_x, np.ndarray)
+        self.__batch_size = batch_size
+        self.__pair_df = pairs_df
+        self.__dataset_x = dataset_x
+        self.__n_batches = (self.__pair_df.shape[0])//self.__batch_size
+        self.__dataset_x_left = self.__dataset_x[self.__pairs_df['addr_left']]
+        self.__dataset_x_right = self.__dataset_x[self.__pairs_df['addr_right']]
+        self.__labels = np.expand_dims(np.array(self.__pair_df['label']), axis=1)
+        self.__batch_files = [self.get_batch(i) for i in tqdm(range(self.__n_batches))]
+        
+    def __len__(self):
+        return self.__n_batches
+    
+    def get_batch_size(self) -> int:
+        return self.__batch_size
+    
+    def get_batch(self, index: int) -> Tuple[List[h5.Dataset], np.ndarray]:
+        xl = self.__dataset_x_left[index*self.__batch_size : (index+1)*self.__batch_size]
+        xr = self.__dataset_x_right[index*self.__batch_size : (index+1)*self.__batch_size]
+        y = self.__labels[index*self.__batch_size : (index+1)*self.__batch_size]
+        return [xl, xr], y  
+    
+    def __getitem__(self, index: int) -> Tuple[List[h5.Dataset], np.ndarray]:
+        return self.__batch_files[index]
+    
 class PairDataGenerator():
     """Siamese neural network data generator. 
     This class is used to provide the neural network's training or test data so that it doesn't consume too much RAM.  
