@@ -209,7 +209,7 @@ class SiameseNet():
         """
         epochs = np.arange(len(self.training_loss_history))+1
         fig, ax1 = plt.subplots()
-        color = 'tab:red'
+        color = 'tab:blue'
         ax1.set_xlabel('Epochs')
         ax1.set_ylabel('Loss', color=color)
         ax1.plot(epochs, self.training_loss_history, color=color, label='Training Loss')
@@ -219,7 +219,7 @@ class SiameseNet():
         ax1.legend()
 
         ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
-        color = 'tab:blue'
+        color = 'tab:red'
         ax2.set_ylabel('AUC', color=color)  # we already handled the x-label with ax1
         ax2.plot(epochs, self.validation_auc_history, color=color, linestyle='-.',label='Validation AUC')
         ax2.tick_params(axis='y', labelcolor=color)
