@@ -1,0 +1,18 @@
+# Commands to generate the documentation
+
+## Install Sphinx
+- pip install sphinx
+- pip install sphinx-markdown-builder
+
+## Generate Sphinx source
+- sphinx-apidoc -o sphinx-docs . sphinx-apidoc --full
+
+## Build documentation
+- cd sphinx-docs
+- ./make clean
+- ./make markdown
+
+## References
+- https://towardsdatascience.com/documenting-python-code-with-sphinx-554e1d6c4f6d
+- https://stackoverflow.com/questions/36237477/python-docstrings-to-github-readme-md
+- https://stackoverflow.com/questions/13396856/markdown-output-for-sphinx-based-documentation
