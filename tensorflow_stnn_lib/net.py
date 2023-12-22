@@ -6,7 +6,7 @@ import tensorflow.keras.backend as K
 from tensorflow.keras import layers
 import matplotlib.pyplot as plt
 from sklearn.metrics import roc_curve, roc_auc_score
-from tqdm import tqdm
+from tqdm.auto import tqdm
 from typing import *
 
 from tensorflow_stnn_lib.distance import euclidean_distance, cosine_distance
@@ -138,7 +138,7 @@ class SiameseNet():
             validation_loss = 0  # This variable will be updated to each iteration with the mean of the loss of each step of eval-on-batch
 
             # --- Epoch training loop ---
-            for i in tqdm(range(len(training_generator)), position=0, leave=True):  # For each batch index
+            for i in tqdm(range(len(training_generator))):  # For each batch index
                 x, y = training_generator[i]  # Get the current training batch
                 # Update models's weights for the current batch
                 training_loss_sum += self.keras_model.train_on_batch(x, y, return_dict=True)['loss']
@@ -148,7 +148,7 @@ class SiameseNet():
             self.training_loss_history.append(training_loss)
 
             # --- Epoch validation loop ---
-            for i in tqdm(range(len(validation_generator)), position=0, leave=True):  # For each batch index
+            for i in tqdm(range(len(validation_generator))):  # For each batch index
                 # Get the current validation batch
                 vx, vy = validation_generator[i]
                 validation_loss_sum += self.keras_model.evaluate(vx, vy, batch_size=validation_generator.get_batch_size(), verbose=0, return_dict=True)['loss']  # evaluate model with the current batch

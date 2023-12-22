@@ -1,6 +1,6 @@
 import pandas as pd
 import numpy as np
-from tqdm import tqdm
+from tqdm.auto import tqdm
 import h5py as h5
 import os
 from typing import *
@@ -118,7 +118,7 @@ class TripletDataGenerator():
         self.__name = name if name is not None else f'gen{id(self)}'
         self.__n_batches = (self.__triplets_df.shape[0])//self.__batch_size
         print('Preparing Dataset Generator')
-        self.__batch_files = [self.get_batch_files(i) for i in tqdm(range(self.__n_batches), position=0, leave=True)]
+        self.__batch_files = [self.get_batch_files(i) for i in tqdm(range(self.__n_batches))]
         
     def __len__(self):
         return self.__n_batches
