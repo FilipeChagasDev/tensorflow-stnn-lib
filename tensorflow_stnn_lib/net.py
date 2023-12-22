@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import tensorflow as tf
 from tensorflow import keras
 from tensorflow.keras import optimizers
@@ -15,11 +16,13 @@ from tensorflow_stnn_lib.data import PairDataGenerator, TripletDataGenerator, Pa
 from tensorflow_stnn_lib.metrics import get_roc_auc
 
 class TrainingBreaker():
+    """
+    This class has a method that signals when the training of an neural network should be interrupted. 
+    The interruption of training is authorized when the moving average of the numerical derivative of the validation 
+    loss reaches a maximum limit close to 0.
+    """
     def __init__(self, avg_window_size: int = 10, limit: float = -0.001) -> None:
-        """This class has a method that signals when the training of an neural network should be interrupted. 
-        The interruption of training is authorized when the moving average of the numerical derivative of the validation 
-        loss reaches a maximum limit close to 0.
-
+        """
         :param avg_window_size: Window size of the moving average. Defaults to 10
         :type avg_window_size: int, optional
         :param limit: maximum limit of the moving average of the numerical derivative of validation loss. Defaults to -0.001
@@ -63,7 +66,7 @@ class SiameseNet():
         :type encoder: keras.Model
         :param margin: Margin used in the contrastive loss function, defaults to 1.0
         :type margin: float, optional
-        :param optimizer: Tensorflow optimization method, defaults to 'adamax'
+        :param optimizer: Tensorflow optimization method, defaults to 'adam'
         :type optimizer: optimizers.Optimizer | str, optional
         :param distance: Distance function used ('euclidean' or 'cosine'). Defaults to 'euclidean'
         :type distance: str, optional
@@ -203,6 +206,20 @@ class SiameseNet():
         :type path: str
         """
         self.__encoder.load_weights(path)
+
+    def get_training_history_df(self) -> pd.DataFrame:
+        """Return the training history as a DataFrame with the following columns: epoch, training_loss, validation_loss and validation_auc.
+
+        :return: Training history DataFrame
+        :rtype: pd.DataFrame
+        """
+        epochs = np.arange(len(self.training_loss_history))+1
+        return pd.DataFrame({
+            'epoch': epochs,
+            'training_loss': self.training_loss_history,
+            'validation_loss': self.validation_loss_history,
+            'validation_auc': self.validation_auc_history
+            })
 
     def plot_training_history(self):
         """Plot a line chart with the evolution of the training loss, validation loss and validation AUC over the course of the training.
