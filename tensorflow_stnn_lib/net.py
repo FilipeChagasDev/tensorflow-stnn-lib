@@ -216,15 +216,17 @@ class SiameseNet():
         ax1.plot(epochs, self.validation_loss_history, color=color, linestyle='--', label='Validation Loss')
         ax1.tick_params(axis='y', labelcolor=color)
         ax1.set_yscale('log')
+        ax1.legend()
 
         ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
         color = 'tab:blue'
         ax2.set_ylabel('AUC', color=color)  # we already handled the x-label with ax1
         ax2.plot(epochs, self.validation_auc_history, color=color, linestyle='-.',label='Validation AUC')
         ax2.tick_params(axis='y', labelcolor=color)
+        ax2.legend()
 
         fig.tight_layout()  # otherwise the right y-label is slightly clipped
-        plt.legend()
+        #plt.legend()
         plt.show()
 
         #plt.plot(, self.training_loss_history, label='Training')
