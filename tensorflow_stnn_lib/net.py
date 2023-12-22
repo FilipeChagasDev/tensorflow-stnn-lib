@@ -55,7 +55,7 @@ class SiameseNet():
     """
     Siamese Neural Network
     """
-    def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 1.0, optimizer: optimizers.Optimizer | str = 'adamax', distance: str = 'euclidean'):
+    def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 1.0, optimizer: optimizers.Optimizer | str = 'adam', distance: str = 'euclidean'):
         """ 
         :param input_shape: Shape of the encoder's input array/tensor 
         :type input_shape: tuple
