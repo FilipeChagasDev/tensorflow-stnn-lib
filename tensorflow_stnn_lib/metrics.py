@@ -14,6 +14,8 @@ def plot_histogram(positive_distances: np.ndarray, negative_distances: np.ndarra
     assert negative_distances.ndim == 1
     plt.hist(positive_distances, bins=100, label='Positive')
     plt.hist(negative_distances, bins=100, label='Negative', alpha=0.7)
+    plt.xlabel('Distance')
+    plt.ylabel('Frequency')
     plt.legend()
     plt.show()
 
