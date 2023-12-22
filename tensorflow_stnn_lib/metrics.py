@@ -27,11 +27,12 @@ def plot_roc(positive_distances: np.ndarray, negative_distances: np.ndarray):
     """
     assert positive_distances.ndim == 1
     assert negative_distances.ndim == 1
+    distances = np.append(positive_distances, negative_distances)
+    scores = 1 - (distances + np.min(distances))/(np.max(distances) + np.min(distances))
     positive_labels = np.ones(shape=positive_distances.shape)
     negative_labels = np.zeros(shape=negative_distances.shape)
-    distances = np.append(positive_distances, negative_distances)
     labels = np.append(positive_labels, negative_labels)
-    fpr, tpr, _ = roc_curve(labels, distances, pos_label=1)
+    fpr, tpr, _ = roc_curve(labels, scores, pos_label=1)
     plt.plot([0,1], [0,1], linestyle='--', label='No Skill', color='gray')
     plt.plot(fpr, tpr, marker='.', label='Predictions')
     plt.xlabel('False Positive Rate')
@@ -51,8 +52,9 @@ def get_roc_auc(positive_distances: np.ndarray, negative_distances: np.ndarray) 
     """
     assert positive_distances.ndim == 1
     assert negative_distances.ndim == 1
+    distances = np.append(positive_distances, negative_distances)
+    scores = 1 - (distances + np.min(distances))/(np.max(distances) + np.min(distances))
     positive_labels = np.ones(shape=positive_distances.shape)
     negative_labels = np.zeros(shape=negative_distances.shape)
-    distances = np.append(positive_distances, negative_distances)
     labels = np.append(positive_labels, negative_labels)
-    return roc_auc_score(labels, distances)
+    return roc_auc_score(labels, scores)
