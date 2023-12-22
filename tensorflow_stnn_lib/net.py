@@ -51,7 +51,23 @@ class TrainingBreaker():
     
 
 class SiameseNet():
+    """
+    Siamese Neural Network
+    """
     def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 1.0, optimizer: optimizers.Optimizer | str = 'adamax', distance: str = 'euclidean'):
+        """ 
+        :param input_shape: Shape of the encoder's input array/tensor 
+        :type input_shape: tuple
+        :param encoder: Encoder model
+        :type encoder: keras.Model
+        :param margin: Margin used in the contrastive loss function, defaults to 1.0
+        :type margin: float, optional
+        :param optimizer: Tensorflow optimization method, defaults to 'adamax'
+        :type optimizer: optimizers.Optimizer | str, optional
+        :param distance: Distance function used ('euclidean' or 'cosine'). Defaults to 'euclidean'
+        :type distance: str, optional
+        :raises Exception: The chosen distance is invalid
+        """
         self.__input_shape = input_shape
         self.__encoder = encoder
         self.__optimizer = optimizer
@@ -80,7 +96,25 @@ class SiameseNet():
         self.keras_model = keras.Model(inputs=[input_left, input_right], outputs=distance)
         self.keras_model.compile(loss=lambda yt, yp: contrastive_loss(yt, yp, margin), optimizer=self.__optimizer)
 
-    def fit(self, training_generator: PairDataGenerator, validation_generator: PairDataGenerator, epochs: int, start_epoch: int = 1, epoch_end_callback : Callable = None, training_breaker: TrainingBreaker = None) -> Tuple[List[float], List[float]]:
+    def fit(self, training_generator: PairDataGenerator, validation_generator: PairDataGenerator, epochs: int, start_epoch: int = 1, epoch_end_callback : Callable = None, training_breaker: TrainingBreaker = None):
+        """SNN training method. You must provide the training and validation data via PairDataGenerators. 
+        The use of these generators is mandatory and they serve to reduce the use of RAM memory. 
+        In addition, you can provide an end-of-epoch callback function and a TrainingBreaker object, 
+        which is responsible for stopping the training when there is no more evolution in the validation loss. 
+
+        :param training_generator: Training data generator
+        :type training_generator: PairDataGenerator
+        :param validation_generator: Validation data generator
+        :type validation_generator: PairDataGenerator
+        :param epochs: Number of training epochs
+        :type epochs: int
+        :param start_epoch: Initial epoch, defaults to 1
+        :type start_epoch: int, optional
+        :param epoch_end_callback: This function is called up at the end of each training season. This function receives a dictionary as an argument, containing the SiameseNet object, the training epoch, the training loss and the validation loss. Defaults to None
+        :type epoch_end_callback: Callable, optional
+        :param training_breaker: Object responsible for signaling that training should be interrupted when there is no progress in the validation loss. Defaults to None
+        :type training_breaker: TrainingBreaker, optional
+        """
         assert epochs >= 1
         assert start_epoch >= 1
         assert epochs >= start_epoch
@@ -124,23 +158,44 @@ class SiameseNet():
             self.validation_loss_history.append(validation_loss)
 
             if epoch_end_callback is not None:
-                epoch_end_callback(snn=self, epoch=epoch, training_loss=training_loss, validation_loss=validation_loss)
+                epoch_end_callback({
+                    'SiameseNet': self, 
+                    'epoch': epoch, 
+                    'training_loss': training_loss, 
+                    'validation_loss': validation_loss
+                    })
 
             if training_breaker is not None:
                 if training_breaker.eval(validation_loss):
                     print('Interruption of the training process authorized by the training breaker')
                     break
 
-    def get_encoder(self):
+    def get_encoder(self) -> keras.Model:
+        """
+        :return: Encoder network
+        :rtype: keras.Model
+        """
         return self.__encoder
 
     def save_encoder(self, path: str):
+        """Save encoder weights to a file
+
+        :param path: target file path
+        :type path: str
+        """
         self.__encoder.save_weights(path)
 
     def load_encoder(self, path: str):
+        """Load encoder weights from a file
+
+        :param path: file path
+        :type path: str
+        """
         self.__encoder.load_weights(path)
 
     def plot_loss(self):
+        """Plot a line chart with the evolution of the training and validation losses over the course of the training
+        """
         plt.plot([i+1 for i in range(len(self.training_loss_history))], self.training_loss_history, label='Training')
         plt.plot([i+1 for i in range(len(self.validation_loss_history))], self.validation_loss_history, label='Validation')
         plt.yscale('log')
@@ -150,10 +205,27 @@ class SiameseNet():
         plt.grid()
         plt.show()
 
-    def get_embeddings(self, x: np.ndarray | tf.Tensor):
+    def get_embeddings(self, x: np.ndarray | tf.Tensor) -> np.ndarray:
+        """Gets the embeddings of an input array
+
+        :param x: Input array or tensor
+        :type x: np.ndarray | tf.Tensor
+        :return: Embedding array
+        :rtype: np.ndarray
+        """
         return self.__encoder.predict(x, verbose=0)
     
     def get_test_distances(self, generator: PairDataGenerator, distance: str = 'euclidean') -> Tuple[np.ndarray, np.ndarray]:
+        """Obtains positive and negative pair distances from embeddings to analyze encoder performance.
+
+        :param generator: Test data generator
+        :type generator: PairDataGenerator
+        :param distance: Distance function used ('euclidean' or 'cosine'). Defaults to 'euclidean'. Defaults to 'euclidean'
+        :type distance: str, optional
+        :raises Exception: The chosen distance is invalid
+        :return: Tuple with two arrays: positive_distances and negative_distances. Both arrays are one-dimensional.
+        :rtype: Tuple[np.ndarray, np.ndarray]
+        """
         if distance == 'euclidean':
             distance_fn = lambda a, b: np.linalg.norm(a-b, axis=1)
         elif distance == 'cosine':
@@ -178,11 +250,34 @@ class SiameseNet():
 
 
 class TripletNet():
-    def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 100.0, optimizer: optimizers.Optimizer | str = 'adamax', distance_function: Callable = euclidean_distance):
+    """
+    Triplet Neural Network
+    """
+    def __init__(self, input_shape: tuple, encoder: keras.Model, margin: float = 100.0, optimizer: optimizers.Optimizer | str = 'adamax', distance: str = 'euclidean'):
+        """
+        :param input_shape: Shape of the encoder's input array/tensor 
+        :type input_shape: tuple
+        :param encoder: Encoder model
+        :type encoder: keras.Model
+        :param margin: Margin used in the triplet loss function, defaults to 100.0
+        :type margin: float, optional
+        :param optimizer: Tensorflow optimization method, defaults to 'adamax'
+        :type optimizer: optimizers.Optimizer | str, optional
+        :param distance: Distance function used ('euclidean' or 'cosine'). Defaults to 'euclidean'
+        :type distance: str, optional
+        :raises Exception: The chosen distance is invalid
+        """
         self.__input_shape = input_shape
         self.__encoder = encoder
         self.__optimizer = optimizer
-        self.__distance_function = distance_function
+
+        if distance == 'euclidean':
+            self.__distance_function = euclidean_distance
+        elif distance == 'cosine':
+            self.__distance_function = cosine_distance
+        else:
+            raise Exception('The chosen distance is invalid')
+        
         self.training_loss_history = []
         self.validation_loss_history = []
 
@@ -205,7 +300,25 @@ class TripletNet():
         self.keras_model = keras.Model(inputs=[input_anchor, input_pos, input_neg], outputs=out)
         self.keras_model.compile(loss=lambda yt, yp: triplet_loss(yt, yp, margin), optimizer=self.__optimizer)
 
-    def fit(self, training_generator: TripletDataGenerator, validation_generator: TripletDataGenerator, epochs: int, start_epoch: int = 1, epoch_end_callback : Callable = None, training_breaker: TrainingBreaker = None) -> Tuple[List[float], List[float]]:
+    def fit(self, training_generator: TripletDataGenerator, validation_generator: TripletDataGenerator, epochs: int, start_epoch: int = 1, epoch_end_callback : Callable = None, training_breaker: TrainingBreaker = None):
+        """TNN training method. You must provide the training and validation data via TripletDataGenerator. 
+        The use of these generators is mandatory and they serve to reduce the use of RAM memory. 
+        In addition, you can provide an end-of-epoch callback function and a TrainingBreaker object, 
+        which is responsible for stopping the training when there is no more evolution in the validation loss. 
+
+        :param training_generator: Training data generator
+        :type training_generator: TripletDataGenerator
+        :param validation_generator: Validation data generator
+        :type validation_generator: TripletDataGenerator
+        :param epochs: Number of training epochs
+        :type epochs: int
+        :param start_epoch: Initial epoch, defaults to 1
+        :type start_epoch: int, optional
+        :param epoch_end_callback: This function is called up at the end of each training season. This function receives a dictionary as an argument, containing the SiameseNet object, the training epoch, the training loss and the validation loss. Defaults to None
+        :type epoch_end_callback: Callable, optional
+        :param training_breaker: Object responsible for signaling that training should be interrupted when there is no progress in the validation loss. Defaults to None
+        :type training_breaker: TrainingBreaker, optional
+        """
         assert epochs >= 1
         assert start_epoch >= 1
         assert epochs >= start_epoch
@@ -249,7 +362,12 @@ class TripletNet():
             self.validation_loss_history.append(validation_loss)
 
             if epoch_end_callback is not None:
-                epoch_end_callback(snn=self, epoch=epoch, training_loss=training_loss, validation_loss=validation_loss)
+                epoch_end_callback({
+                    'SiameseNet': self, 
+                    'epoch': epoch, 
+                    'training_loss': training_loss, 
+                    'validation_loss': validation_loss
+                    })
 
             if training_breaker is not None:
                 if training_breaker.eval(validation_loss):
@@ -257,15 +375,31 @@ class TripletNet():
                     break
 
     def get_encoder(self):
+        """
+        :return: Encoder network
+        :rtype: keras.Model
+        """
         return self.__encoder
 
     def save_encoder(self, path: str):
+        """Save encoder weights to a file
+
+        :param path: target file path
+        :type path: str
+        """
         self.__encoder.save_weights(path)
 
     def load_encoder(self, path: str):
+        """Load encoder weights from a file
+
+        :param path: file path
+        :type path: str
+        """
         self.__encoder.load_weights(path)
 
     def plot_loss(self):
+        """Plot a line chart with the evolution of the training and validation losses over the course of the training
+        """
         plt.plot([i+1 for i in range(len(self.training_loss_history))], self.training_loss_history, label='Training')
         plt.plot([i+1 for i in range(len(self.validation_loss_history))], self.validation_loss_history, label='Validation')
         plt.yscale('log')
@@ -276,9 +410,26 @@ class TripletNet():
         plt.show()
 
     def get_embeddings(self, x: np.ndarray | tf.Tensor):
+        """Gets the embeddings of an input array
+
+        :param x: Input array or tensor
+        :type x: np.ndarray | tf.Tensor
+        :return: Embedding array
+        :rtype: np.ndarray
+        """
         return self.__encoder.predict(x, verbose=0)
     
     def get_test_distances(self, generator: TripletDataGenerator, distance: str = 'euclidean')  -> Tuple[np.ndarray, np.ndarray]:
+        """Obtains positive and negative pair distances from embeddings to analyze encoder performance.
+
+        :param generator: Test data generator
+        :type generator: PairDataGenerator
+        :param distance: Distance function used ('euclidean' or 'cosine'). Defaults to 'euclidean'. Defaults to 'euclidean'
+        :type distance: str, optional
+        :raises Exception: The chosen distance is invalid
+        :return: Tuple with two arrays: positive_distances and negative_distances. Both arrays are one-dimensional.
+        :rtype: Tuple[np.ndarray, np.ndarray]
+        """
         if distance == 'euclidean':
             distance_fn = lambda a, b: np.linalg.norm(a-b, axis=1)
         elif distance == 'cosine':

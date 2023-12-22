@@ -6,7 +6,20 @@ import os
 from typing import *
 
 class PairDataGenerator():
+    """Siamese neural network data generator. 
+    This class is used to provide the neural network's training or test data so that it doesn't consume too much RAM.  
+    """
     def __init__(self, batch_size: int, pairs_df: pd.DataFrame, loader_fn: Callable, name: str = None):
+        """
+        :param batch_size: Size of training/test batches
+        :type batch_size: int
+        :param pairs_df: DataFrame containing the input data pairs and their respective labels. See the examples to see how this DataFrame should be structured.
+        :type pairs_df: pd.DataFrame
+        :param loader_fn: Function responsible for loading the samples from disk. This function must receive the address of the sample (present in the DataFrame) and return the sample as a NumPy Array.
+        :type loader_fn: Callable
+        :param name: Generator name. It's important to define this name if you don't want a new generator to be generated every time your script is run. Defaults to None
+        :type name: str, optional
+        """
         assert isinstance(batch_size, int)
         assert isinstance(pairs_df, pd.DataFrame)
         assert isinstance(loader_fn, Callable)
@@ -81,7 +94,20 @@ class PairDataGenerator():
         return [left, right], labels
     
 class TripletDataGenerator():
+    """Triplet neural network data generator. 
+    This class is used to provide the neural network's training or test data so that it doesn't consume too much RAM.  
+    """
     def __init__(self, batch_size: int, triplets_df: pd.DataFrame, loader_fn: Callable, name: str = None):
+        """
+        :param batch_size: Size of training/test batches
+        :type batch_size: int
+        :param triplets_df: DataFrame containing the input triplets. See the examples to see how this DataFrame should be structured.
+        :type triplets_df: pd.DataFrame
+        :param loader_fn: Function responsible for loading the samples from disk. This function must receive the address of the sample (present in the DataFrame) and return the sample as a NumPy Array.
+        :type loader_fn: Callable
+        :param name: Generator name. It's important to define this name if you don't want a new generator to be generated every time your script is run. Defaults to None
+        :type name: str, optional
+        """
         assert isinstance(batch_size, int)
         assert isinstance(triplets_df, pd.DataFrame)
         assert isinstance(loader_fn, Callable)
