@@ -151,7 +151,7 @@ class SiameseNet():
             for i in tqdm(range(len(validation_generator))):  # For each batch index
                 # Get the current validation batch
                 vx, vy = validation_generator[i]
-                vp = self.keras_model.predict(vx)
+                vp = self.keras_model.predict(vx, verbose=0)
                 validation_loss_sum += contrastive_loss(vy, vp)
                 v_pos_dist = np.squeeze(vp[np.squeeze(vy.astype(bool))])
                 v_neg_dist = np.squeeze(vp[np.squeeze(np.logical_not(vy.astype(bool)))])
@@ -162,7 +162,7 @@ class SiameseNet():
 
             print(f'validation_loss={validation_loss:.4f}')
             print(f'AUC={validation_auc:.4f}')
-            
+
             self.validation_loss_history.append(validation_loss)
 
             if epoch_end_callback is not None:
