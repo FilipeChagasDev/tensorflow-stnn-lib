@@ -11,7 +11,7 @@ from typing import *
 
 from tensorflow_stnn_lib.distance import euclidean_distance, cosine_distance
 from tensorflow_stnn_lib.loss import contrastive_loss, triplet_loss
-from tensorflow_stnn_lib.generator import PairDataGenerator, TripletDataGenerator
+from tensorflow_stnn_lib.generator import PairDataGenerator, TripletDataGenerator, PairDataset
 
 class TrainingBreaker():
     def __init__(self, avg_window_size: int = 10, limit: float = -0.001) -> None:
@@ -96,16 +96,16 @@ class SiameseNet():
         self.keras_model = keras.Model(inputs=[input_left, input_right], outputs=distance)
         self.keras_model.compile(loss=lambda yt, yp: contrastive_loss(yt, yp, margin), optimizer=self.__optimizer)
 
-    def fit(self, training_generator: PairDataGenerator, validation_generator: PairDataGenerator, epochs: int, start_epoch: int = 1, epoch_end_callback : Callable = None, training_breaker: TrainingBreaker = None):
+    def fit(self, training_generator: PairDataGenerator | PairDataset, validation_generator: PairDataGenerator | PairDataset, epochs: int, start_epoch: int = 1, epoch_end_callback : Callable = None, training_breaker: TrainingBreaker = None):
         """SNN training method. You must provide the training and validation data via PairDataGenerators. 
         The use of these generators is mandatory and they serve to reduce the use of RAM memory. 
         In addition, you can provide an end-of-epoch callback function and a TrainingBreaker object, 
         which is responsible for stopping the training when there is no more evolution in the validation loss. 
 
-        :param training_generator: Training data generator
-        :type training_generator: PairDataGenerator
-        :param validation_generator: Validation data generator
-        :type validation_generator: PairDataGenerator
+        :param training_generator: Training dataset or generator
+        :type training_generator: PairDataGenerator | PairDataset
+        :param validation_generator: Validation dataset or generator
+        :type validation_generator: PairDataGenerator | PairDataset
         :param epochs: Number of training epochs
         :type epochs: int
         :param start_epoch: Initial epoch, defaults to 1
@@ -215,11 +215,11 @@ class SiameseNet():
         """
         return self.__encoder.predict(x, verbose=0)
     
-    def get_test_distances(self, generator: PairDataGenerator, distance: str = 'euclidean') -> Tuple[np.ndarray, np.ndarray]:
+    def get_test_distances(self, generator: PairDataGenerator | PairDataset, distance: str = 'euclidean') -> Tuple[np.ndarray, np.ndarray]:
         """Obtains positive and negative pair distances from embeddings to analyze encoder performance.
 
-        :param generator: Test data generator
-        :type generator: PairDataGenerator
+        :param generator: Test dataset or generator
+        :type generator: PairDataGenerator | PairDataset
         :param distance: Distance function used ('euclidean' or 'cosine'). Defaults to 'euclidean'. Defaults to 'euclidean'
         :type distance: str, optional
         :raises Exception: The chosen distance is invalid

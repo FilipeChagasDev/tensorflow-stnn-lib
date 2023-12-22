@@ -34,6 +34,7 @@ class PairDataset():
     def __getitem__(self, index: int) -> Tuple[List[h5.Dataset], np.ndarray]:
         return self.__batch_files[index]
     
+    
 class PairDataGenerator():
     """Siamese neural network data generator. 
     This class is used to provide the neural network's training or test data so that it doesn't consume too much RAM.  
