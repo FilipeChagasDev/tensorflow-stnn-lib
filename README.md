@@ -32,5 +32,5 @@ pip install git+https://github.com/FilipeChagasDev/tensorflow-stnn-lib.git
 
 ## Example notebooks
 
-TODO
+* [Generating embeddings of handwritten digits using a Siamese Neural Network](examples/mnist_digits_siamese_net.ipynb)
 
