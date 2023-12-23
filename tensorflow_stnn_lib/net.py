@@ -11,7 +11,7 @@ from typing import *
 
 from tensorflow_stnn_lib.distance import euclidean_distance, cosine_distance
 from tensorflow_stnn_lib.loss import contrastive_loss, triplet_loss
-from tensorflow_stnn_lib.data import PairDataGenerator, TripletDataGenerator, PairDataset
+from tensorflow_stnn_lib.data import PairDataGenerator, PairDataset #, TripletDataGenerator
 from tensorflow_stnn_lib.metrics import get_roc_auc
 
 class TrainingBreaker():

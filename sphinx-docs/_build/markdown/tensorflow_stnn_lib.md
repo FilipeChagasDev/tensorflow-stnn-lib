@@ -4,6 +4,109 @@
 
 ## tensorflow_stnn_lib.net module
 
+### *class* tensorflow_stnn_lib.net.SiameseNet(input_shape: tuple, encoder: Model, margin: float = 1.0, optimizer: Optimizer | str = 'adam', distance: str = 'euclidean')
+
+Bases: `object`
+
+Siamese Neural Network
+
+#### fit(training_generator: [PairDataGenerator](#tensorflow_stnn_lib.data.PairDataGenerator) | [PairDataset](#tensorflow_stnn_lib.data.PairDataset), validation_generator: [PairDataGenerator](#tensorflow_stnn_lib.data.PairDataGenerator) | [PairDataset](#tensorflow_stnn_lib.data.PairDataset), epochs: int, start_epoch: int = 1, epoch_end_callback: Callable = None, training_breaker: [TrainingBreaker](#tensorflow_stnn_lib.net.TrainingBreaker) = None)
+
+SNN training method. You must provide the training and validation data via PairDataGenerators. 
+The use of these generators is mandatory and they serve to reduce the use of RAM memory. 
+In addition, you can provide an end-of-epoch callback function and a TrainingBreaker object, 
+which is responsible for stopping the training when there is no more evolution in the validation loss.
+
+* **Parameters:**
+  * **training_generator** ([*PairDataGenerator*](#tensorflow_stnn_lib.data.PairDataGenerator) *|* [*PairDataset*](#tensorflow_stnn_lib.data.PairDataset)) – Training dataset or generator
+  * **validation_generator** ([*PairDataGenerator*](#tensorflow_stnn_lib.data.PairDataGenerator) *|* [*PairDataset*](#tensorflow_stnn_lib.data.PairDataset)) – Validation dataset or generator
+  * **epochs** (*int*) – Number of training epochs
+  * **start_epoch** (*int**,* *optional*) – Initial epoch, defaults to 1
+  * **epoch_end_callback** (*Callable**,* *optional*) – This function is called up at the end of each training season. This function receives a dictionary as an argument, containing the SiameseNet object, the training epoch, the training loss and the validation loss. Defaults to None
+  * **training_breaker** ([*TrainingBreaker*](#tensorflow_stnn_lib.net.TrainingBreaker)*,* *optional*) – Object responsible for signaling that training should be interrupted when there is no progress in the validation loss. Defaults to None
+
+#### get_embeddings(x: ndarray | Tensor)
+
+Gets the embeddings of an input array
+
+* **Parameters:**
+  **x** (*np.ndarray* *|* *tf.Tensor*) – Input array or tensor
+* **Returns:**
+  Embedding array
+* **Return type:**
+  np.ndarray
+
+#### get_encoder()
+
+* **Returns:**
+  Encoder network
+* **Return type:**
+  keras.Model
+
+#### get_test_distances(generator: [PairDataGenerator](#tensorflow_stnn_lib.data.PairDataGenerator) | [PairDataset](#tensorflow_stnn_lib.data.PairDataset), distance: str = 'euclidean')
+
+Obtains positive and negative pair distances from embeddings to analyze encoder performance.
+
+* **Parameters:**
+  * **generator** ([*PairDataGenerator*](#tensorflow_stnn_lib.data.PairDataGenerator) *|* [*PairDataset*](#tensorflow_stnn_lib.data.PairDataset)) – Test dataset or generator
+  * **distance** (*str**,* *optional*) – Distance function used (‘euclidean’ or ‘cosine’). Defaults to ‘euclidean’. Defaults to ‘euclidean’
+* **Raises:**
+  **Exception** – The chosen distance is invalid
+* **Returns:**
+  Tuple with two arrays: positive_distances and negative_distances. Both arrays are one-dimensional.
+* **Return type:**
+  Tuple[np.ndarray, np.ndarray]
+
+#### get_training_history_df()
+
+Return the training history as a DataFrame with the following columns: epoch, training_loss, validation_loss and validation_auc.
+
+* **Returns:**
+  Training history DataFrame
+* **Return type:**
+  pd.DataFrame
+
+#### load_encoder(path: str)
+
+Load encoder weights from a file
+
+* **Parameters:**
+  **path** (*str*) – file path
+
+#### plot_training_history()
+
+Plot a line chart with the evolution of the training loss, validation loss and validation AUC over the course of the training.
+
+#### save_encoder(path: str)
+
+Save encoder weights to a file
+
+* **Parameters:**
+  **path** (*str*) – target file path
+
+### *class* tensorflow_stnn_lib.net.TrainingBreaker(avg_window_size: int = 10, limit: float = -0.001)
+
+Bases: `object`
+
+This class has a method that signals when the training of an neural network should be interrupted. 
+The interruption of training is authorized when the moving average of the numerical derivative of the validation 
+loss reaches a maximum limit close to 0.
+
+#### eval(val_loss: float)
+
+Computes the moving average of the derivative of the validation loss and returns True if it is time to stop training
+
+* **Parameters:**
+  **val_loss** (*float*) – Last validation loss computed
+* **Returns:**
+  True if it’s time to strop training
+* **Return type:**
+  bool
+
+#### reset()
+
+Clears the moving average queue
+
 ## tensorflow_stnn_lib.data module
 
 ### *class* tensorflow_stnn_lib.data.PairDataGenerator(batch_size: int, dataset_df: DataFrame, loader_fn: Callable, name: str = None)
@@ -55,6 +158,34 @@ class_left, addr_right, class_right and label columns.
   pd.DataFrame
 
 ## tensorflow_stnn_lib.metrics module
+
+### tensorflow_stnn_lib.metrics.get_roc_auc(positive_distances: ndarray, negative_distances: ndarray)
+
+Obtains the area under the ROC curve (AUC).
+
+* **Parameters:**
+  * **positive_distances** (*np.ndarray*) – Array of positive distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
+  * **negative_distances** (*np.ndarray*) – Array of negative distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
+* **Returns:**
+  AUC
+* **Return type:**
+  float
+
+### tensorflow_stnn_lib.metrics.plot_histogram(positive_distances: ndarray, negative_distances: ndarray)
+
+Plot a histogram showing the distributions of positive and negative distances.
+
+* **Parameters:**
+  * **positive_distances** (*np.ndarray*) – Array of positive distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
+  * **negative_distances** (*np.ndarray*) – Array of negative distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
+
+### tensorflow_stnn_lib.metrics.plot_roc(positive_distances: ndarray, negative_distances: ndarray)
+
+Plots a ROC curve of the encoder’s predictions.
+
+* **Parameters:**
+  * **positive_distances** (*np.ndarray*) – Array of positive distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
+  * **negative_distances** (*np.ndarray*) – Array of negative distances obtained with the get_test_distances method of the SiameseNet or TripletNet class.
 
 ## Internal features
 
