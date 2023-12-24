@@ -8,11 +8,15 @@ Tensorflow-STNN-lib is a Tensorflow-based Python library built to facilitate the
 
 **What are Siamese Neural Networks?**
 
-Siamese Neural Networks are a specialized type of neural network architecture designed for tasks that involve measuring the similarity or dissimilarity between pairs of input data. These neural networks are made up of pairs of subnetworks with shared weights (twins), called "encoders", whose outputs are joined by a distance layer. These encoders are neural networks whose inputs are pre-processed data (images, audio, text, etc.) and outputs are **embeddings**.  The aim of the Siamese Neural Network is to train the encoder to map similar data pairs to embedding pairs separated by small distances, and non-similar data pairs to embeddings separated by larger distances. In this way, the encoders can be used in tasks such as facial recognition, voice recognition and signature recognition, especially if associated with vector databases.
+![SNN Archtecture](img/snn.png)
+
+Siamese Neural Networks (SNN) are a specialized type of neural network architecture designed for tasks that involve measuring the similarity or dissimilarity between pairs of input data. These neural networks are made up of pairs of subnetworks with shared weights (twins), called "encoders", whose outputs are joined by a distance layer. These encoders are neural networks whose inputs are pre-processed data (images, audio, text, etc.) and outputs are **embeddings**.  The aim of the Siamese Neural Network is to train the encoder to map similar data pairs to embedding pairs separated by small distances, and non-similar data pairs to embeddings separated by larger distances. In this way, the encoders can be used in tasks such as facial recognition, voice recognition and signature recognition, especially if associated with vector databases.
 
 **What are Triplet Neural Networks?**
 
-Triplet Neural Networks are an extension of the siamese architecture, specifically designed to enhance the learning process by incorporating triplets of data instances. Unlike siamese networks that work with pairs, triplet networks leverage three instances for training: an anchor, a positive example, and a negative example. The anchor and positive instance belong to the same class or category, while the negative instance belongs to a different class. The network is trained to minimize the distance between the anchor and positive examples while maximizing the distance between the anchor and negative examples in the embedding space. 
+![TNN Archtecture](img/tnn.png)
+
+Triplet Neural Networks (TNN) are an extension of the siamese architecture, specifically designed to enhance the learning process by incorporating triplets of data instances. Unlike siamese networks that work with pairs, triplet networks leverage three instances for training: an anchor, a positive example, and a negative example. The anchor and positive instance belong to the same class or category, while the negative instance belongs to a different class. The network is trained to minimize the distance between the anchor and positive examples while maximizing the distance between the anchor and negative examples in the embedding space. 
 
 **What are Embeddings?** 
 
@@ -23,7 +27,7 @@ Embeddings are vectors of real numbers that represent data such as images, audio
 There is documentation of classes, methods and functions in the following document: [Classes, Methods and Functions documentation](sphinx-docs/_build/markdown/index.md). However, I recommend that you learn how to use the library by following the example notebooks.
 
 
-## Instalation
+## Installation
 
 From GitHub:
 ```
